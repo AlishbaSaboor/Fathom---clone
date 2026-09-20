@@ -31,7 +31,16 @@ interface Marks {
   actions: ActionItem[];
 }
 
-export function TranscriptTab({ meeting, jump }: { meeting: Meeting; jump: JumpRequest | null }) {
+export function TranscriptTab({
+  meeting,
+  jump,
+  readOnly = false,
+}: {
+  meeting: Meeting;
+  jump: JumpRequest | null;
+  /** Public share view: the highlighted moment stays marked, but its internal note is not shown. */
+  readOnly?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const [current, setCurrent] = useState(0);
 
@@ -173,8 +182,12 @@ export function TranscriptTab({ meeting, jump }: { meeting: Meeting; jump: JumpR
                   <DiamondIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <p>
                     <span className="font-bold uppercase tracking-wide">Highlight</span>
-                    <span className="mx-1.5 text-zinc-400">···</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{h.note}</span>
+                    {!readOnly && (
+                      <>
+                        <span className="mx-1.5 text-zinc-400">···</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{h.note}</span>
+                      </>
+                    )}
                   </p>
                 </div>
               ))}

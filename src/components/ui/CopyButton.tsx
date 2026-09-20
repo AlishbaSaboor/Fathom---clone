@@ -6,11 +6,14 @@ import { CheckIcon, CopyIcon } from "./icons";
 export function CopyButton({
   getText,
   label,
+  shortLabel,
   copiedLabel = "Copied",
   className = "",
 }: {
   getText: () => string;
   label: string;
+  /** Shown instead of `label` below the sm breakpoint, for tight toolbars. */
+  shortLabel?: string;
   copiedLabel?: string;
   className?: string;
 }) {
@@ -37,7 +40,18 @@ export function CopyButton({
       className={`inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-violet-900 dark:bg-violet-950/60 dark:text-violet-200 dark:hover:bg-violet-900/60 ${className}`}
     >
       {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
-      <span aria-live="polite">{copied ? copiedLabel : label}</span>
+      <span aria-live="polite" className="whitespace-nowrap">
+        {copied ? (
+          copiedLabel
+        ) : shortLabel ? (
+          <>
+            <span className="sm:hidden">{shortLabel}</span>
+            <span className="hidden sm:inline">{label}</span>
+          </>
+        ) : (
+          label
+        )}
+      </span>
     </button>
   );
 }

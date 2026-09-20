@@ -12,7 +12,9 @@ import { ActionItemList } from "./ActionItemList";
 const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Teams" } as const;
 
 // Copies the public share link. The link is a route that needs no login; see
-// app/(share)/share/[token]. There is no revocation or expiry (stubbed).
+// app/(share)/share/[token]. There is no revocation or expiry (stubbed). It is
+// shown on the share page too, like the real product, where it just copies the
+// link the viewer is already on.
 function ShareButton({ token }: { token: string }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -58,7 +60,12 @@ export function MeetingSidebar({
   const doneCount = meeting.actionItems.filter((a) => done[a.id]).length;
 
   return (
-    <div className="space-y-6">
+    // On desktop this is one stacked column. On mobile the wrapper disappears
+    // (`contents`) so the header and body become separate grid items that
+    // MeetingDetail orders as: video, header, tabs, then the body. Otherwise the
+    // action items push the summary a few screens down the page.
+    <div className="max-lg:contents lg:space-y-6">
+      <div className="space-y-6 max-lg:[grid-area:head]">
       <div>
         <h1 className="text-lg font-semibold leading-snug">{meeting.title}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
@@ -78,8 +85,10 @@ export function MeetingSidebar({
         </div>
       </div>
 
-      {!readOnly && <ShareButton token={meeting.shareToken} />}
+      <ShareButton token={meeting.shareToken} />
+      </div>
 
+      <div className="space-y-6 max-lg:[grid-area:side]">
       <section aria-labelledby="action-items-heading">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h2 id="action-items-heading" className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -142,6 +151,7 @@ export function MeetingSidebar({
           </ul>
         </section>
       )}
+      </div>
     </div>
   );
 }

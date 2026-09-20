@@ -78,12 +78,12 @@ export function MeetingDetail({ meeting, readOnly = false }: { meeting: Meeting;
   }
 
   return (
-    <div className="grid gap-6 [grid-template-areas:'video'_'side'_'tabs'] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'video_side'_'tabs_side']">
+    <div className="grid gap-6 [grid-template-areas:'video'_'head'_'tabs'_'side'] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'video_side'_'tabs_side']">
       <div className="[grid-area:video]">
         <VideoPlaceholder meeting={meeting} />
       </div>
 
-      <aside className="self-start [grid-area:side] lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1">
+      <aside className="max-lg:contents lg:self-start lg:[grid-area:side] lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1">
         <MeetingSidebar
           meeting={meeting}
           done={done}
@@ -94,7 +94,7 @@ export function MeetingDetail({ meeting, readOnly = false }: { meeting: Meeting;
       </aside>
 
       <div className="min-w-0 [grid-area:tabs]">
-        <div className="mb-5 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
+        <div className="mb-5 flex flex-wrap items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
           <div role="tablist" aria-label="Meeting sections" onKeyDown={onTabKeyDown} className="flex gap-1">
             {TABS.map((t) => {
               const selected = tab === t.id;
@@ -108,7 +108,7 @@ export function MeetingDetail({ meeting, readOnly = false }: { meeting: Meeting;
                   aria-controls={`panel-${t.id}`}
                   tabIndex={selected ? 0 : -1}
                   onClick={() => changeTab(t.id)}
-                  className={`-mb-px border-b-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-violet-600 ${
+                  className={`-mb-px whitespace-nowrap border-b-2 px-2.5 py-2.5 text-xs sm:px-3 font-semibold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-violet-600 ${
                     selected
                       ? "border-violet-600 text-violet-700 dark:border-violet-400 dark:text-violet-300"
                       : "border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
@@ -120,7 +120,12 @@ export function MeetingDetail({ meeting, readOnly = false }: { meeting: Meeting;
             })}
           </div>
           {tab === "transcript" && (
-            <CopyButton label="Copy Transcript" getText={() => transcriptToText(meeting)} className="mb-1.5" />
+            <CopyButton
+              label="Copy Transcript"
+              shortLabel="Copy"
+              getText={() => transcriptToText(meeting)}
+              className="mb-1.5 shrink-0"
+            />
           )}
         </div>
 
@@ -130,7 +135,7 @@ export function MeetingDetail({ meeting, readOnly = false }: { meeting: Meeting;
           <SummaryTab meeting={meeting} template={template} onTemplateChange={setTemplate} onJump={jumpTo} />
         </div>
         <div role="tabpanel" id="panel-transcript" aria-labelledby="tab-transcript" hidden={tab !== "transcript"}>
-          <TranscriptTab meeting={meeting} jump={jump} />
+          <TranscriptTab meeting={meeting} jump={jump} readOnly={readOnly} />
         </div>
         <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" hidden={tab !== "ask"}>
           <AskFathomTab />
