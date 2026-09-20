@@ -1,3 +1,11 @@
 # hook bookkeeping only; .agent-logs/ is intentionally NOT ignored
 .claude/hooks/.state/
 __pycache__/
+
+# dependencies / build output
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+node_modules
