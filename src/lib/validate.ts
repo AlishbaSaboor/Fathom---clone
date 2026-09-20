@@ -67,7 +67,7 @@ export function validateMeetings(meetings: Meeting[]): void {
         }
       }
     }
-    const generalIds = new Set(m.summaries.general?.map((s) => s.id));
+    const generalIds = new Set(m.summaries.general.map((s) => s.id));
     for (const required of GENERAL_REQUIRED_SECTIONS) {
       if (!generalIds.has(required)) at(`general summary missing "${required}" section`);
     }

@@ -1,44 +1,62 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { SearchIcon, XIcon } from "@/components/ui/icons";
+import { SearchIcon, UploadIcon, XIcon } from "@/components/ui/icons";
+import { useUploads } from "@/lib/recordings/storage";
+import { toListItem } from "@/lib/recordings/toMeeting";
 import { searchMeetings } from "@/lib/search";
 import type { MeetingListItem } from "@/types/meeting";
 import { MeetingCard } from "./MeetingCard";
 
 export function MeetingGrid({ meetings }: { meetings: MeetingListItem[] }) {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => searchMeetings(meetings, query), [meetings, query]);
+  // Recordings the user uploaded live in this browser (localStorage), so they
+  // are merged in here on the client. Empty during server rendering.
+  const uploads = useUploads();
+  const all = useMemo(
+    () => [...meetings, ...uploads.map(toListItem)].sort((a, b) => b.date.localeCompare(a.date)),
+    [meetings, uploads],
+  );
+  const results = useMemo(() => searchMeetings(all, query), [all, query]);
   const searching = query.trim().length > 0;
 
   return (
     <>
-      <div className="relative max-w-xl">
-        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by title or attendee"
-          aria-label="Search calls by title or attendee"
-          className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm shadow-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            aria-label="Clear search"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-          >
-            <XIcon className="h-4 w-4" />
-          </button>
-        )}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-0 flex-1 basis-64 sm:max-w-xl">
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title or attendee"
+            aria-label="Search calls by title or attendee"
+            className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm shadow-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <Link
+          href="/upload"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+        >
+          <UploadIcon className="h-4 w-4" />
+          Upload a recording
+        </Link>
       </div>
 
       <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
-        {searching
-          ? `${results.length} of ${meetings.length} calls`
-          : `${meetings.length} calls`}
+        {searching ? `${results.length} of ${all.length} calls` : `${all.length} calls`}
       </p>
 
       {results.length > 0 ? (

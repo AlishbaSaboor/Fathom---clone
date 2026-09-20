@@ -82,7 +82,8 @@ export type SummarySection =
       entries: { attendeeId: string; items: string[] }[];
     };
 
-export type Platform = "zoom" | "meet" | "teams";
+/** Where a meeting came from. "upload" is a recording the user uploaded and had transcribed. */
+export type Platform = "zoom" | "meet" | "teams" | "upload";
 
 export interface Meeting {
   id: string;
@@ -106,15 +107,30 @@ export interface Meeting {
    * One stored summary per template. `general` must contain the four core
    * sections (purpose, takeaways, topics, next-steps); see lib/validate.ts.
    */
-  summaries: Record<TemplateId, SummarySection[]>;
+  summaries: SummarySet;
   actionItems: ActionItem[];
   /** At least one per meeting. */
   highlights: Highlight[];
   chapters?: Chapter[];
+  /**
+   * "seed" (default) is built-in demo data with stubbed playback. "upload" is a
+   * user recording kept in this browser only (localStorage + IndexedDB), with
+   * real playback and no share link.
+   */
+  source?: "seed" | "upload";
+  /** For uploads: details of the original file. The bytes themselves live in IndexedDB. */
+  media?: { fileName: string; mimeType: string; sizeBytes: number };
 }
+
+/**
+ * Stored summaries by template. `general` is always present. Seeded meetings
+ * ship all three; an uploaded recording only gets `general` (one Gemini call),
+ * so the template switcher offers only the templates that exist.
+ */
+export type SummarySet = { general: SummarySection[] } & Partial<Record<Exclude<TemplateId, "general">, SummarySection[]>>;
 
 /** What the My Calls list needs. Keeps transcripts out of the client bundle. */
 export type MeetingListItem = Pick<
   Meeting,
-  "id" | "title" | "date" | "durationSec" | "platform" | "poster" | "attendees"
+  "id" | "title" | "date" | "durationSec" | "platform" | "poster" | "attendees" | "source"
 >;

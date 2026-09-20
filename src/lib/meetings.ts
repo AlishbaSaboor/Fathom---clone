@@ -16,6 +16,7 @@ export async function getMeetingList(): Promise<MeetingListItem[]> {
     date: m.date,
     durationSec: m.durationSec,
     platform: m.platform,
+    source: m.source ?? "seed",
     poster: m.poster,
     attendees: m.attendees,
   }));

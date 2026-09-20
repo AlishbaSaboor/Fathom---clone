@@ -8,9 +8,12 @@ import type { TemplateId } from "@/types/meeting";
 export function TemplateSwitcher({
   value,
   onChange,
+  available = TEMPLATE_ORDER,
 }: {
   value: TemplateId;
   onChange: (id: TemplateId) => void;
+  /** Templates this meeting has a stored summary for. */
+  available?: TemplateId[];
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -66,7 +69,7 @@ export function TemplateSwitcher({
           aria-label="Summary template"
           className="absolute left-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-zinc-200 bg-white p-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
         >
-          {TEMPLATE_ORDER.map((id) => {
+          {available.map((id) => {
             const t = TEMPLATES[id];
             const selected = id === value;
             return (

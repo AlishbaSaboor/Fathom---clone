@@ -9,7 +9,7 @@ import { formatDate, formatDuration, formatTimestamp } from "@/lib/format";
 import type { Meeting } from "@/types/meeting";
 import { ActionItemList } from "./ActionItemList";
 
-const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Teams" } as const;
+const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Teams", upload: "Uploaded recording" } as const;
 
 // Copies the public share link. The link is a route that needs no login; see
 // app/(share)/share/[token]. There is no revocation or expiry (stubbed). It is
@@ -49,12 +49,14 @@ export function MeetingSidebar({
   onToggle,
   onJump,
   readOnly,
+  onDelete,
 }: {
   meeting: Meeting;
   done: Record<string, boolean>;
   onToggle: (id: string) => void;
   onJump: (t: number) => void;
   readOnly: boolean;
+  onDelete?: () => void;
 }) {
   const people = new Map(meeting.attendees.map((a) => [a.id, a]));
   const doneCount = meeting.actionItems.filter((a) => done[a.id]).length;
@@ -85,7 +87,23 @@ export function MeetingSidebar({
         </div>
       </div>
 
-      <ShareButton token={meeting.shareToken} />
+      {/* Uploaded recordings exist only in this browser, so there is no public link to share. */}
+      {meeting.source === "upload" ? (
+        <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+          Stored in this browser only. It can&rsquo;t be shared with a link.
+        </p>
+      ) : (
+        <ShareButton token={meeting.shareToken} />
+      )}
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="text-xs font-medium text-rose-600 underline hover:text-rose-700 dark:text-rose-400"
+        >
+          Delete this recording
+        </button>
+      )}
       </div>
 
       <div className="space-y-6 max-lg:[grid-area:side]">
@@ -115,7 +133,7 @@ export function MeetingSidebar({
 
       {/* "Internal team only" mirrors the real product: annotations are notes for
           the owner's team, so the public share view hides this panel. */}
-      {!readOnly && (
+      {!readOnly && meeting.highlights.length > 0 && (
         <section aria-labelledby="annotations-heading">
           <h2 id="annotations-heading" className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Annotations

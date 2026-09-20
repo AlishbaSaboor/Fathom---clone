@@ -35,11 +35,17 @@ export function TranscriptTab({
   meeting,
   jump,
   readOnly = false,
+  activeSegmentId,
+  onSeek,
 }: {
   meeting: Meeting;
   jump: JumpRequest | null;
   /** Public share view: the highlighted moment stays marked, but its internal note is not shown. */
   readOnly?: boolean;
+  /** Uploaded recordings only: the segment being spoken right now. */
+  activeSegmentId?: string;
+  /** Uploaded recordings only: makes timestamps play from that moment. */
+  onSeek?: (seconds: number) => void;
 }) {
   const [query, setQuery] = useState("");
   const [current, setCurrent] = useState(0);
@@ -203,15 +209,26 @@ export function TranscriptTab({
               ))}
 
               <div className="flex gap-3">
-                <span className="w-11 shrink-0 pt-2.5 text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-                  {formatTimestamp(seg.start)}
-                </span>
+                {onSeek ? (
+                  <button
+                    type="button"
+                    onClick={() => onSeek(seg.start)}
+                    title="Play from here"
+                    className="w-11 shrink-0 self-start rounded pt-2.5 text-left text-xs tabular-nums text-violet-600 hover:underline dark:text-violet-300"
+                  >
+                    {formatTimestamp(seg.start)}
+                  </button>
+                ) : (
+                  <span className="w-11 shrink-0 pt-2.5 text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+                    {formatTimestamp(seg.start)}
+                  </span>
+                )}
                 <div
                   className={`min-w-0 flex-1 rounded-lg px-3 py-2 ${
                     highlighted
                       ? "border-l-4 border-violet-500 bg-violet-50 dark:bg-violet-950/50"
                       : "bg-zinc-100 dark:bg-zinc-900"
-                  } ${isCurrent ? "ring-2 ring-amber-400" : ""}`}
+                  } ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-violet-400" : ""}`}
                 >
                   <p className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: speaker?.avatarColor }}>
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: speaker?.avatarColor }} aria-hidden />

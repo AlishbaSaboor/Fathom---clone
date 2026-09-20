@@ -9,7 +9,7 @@ import type { Meeting } from "@/types/meeting";
 // this build (a scope decision, not a shortfall), so this is a generated poster
 // with a play icon and non-functional controls. Highlights are still marked on
 // the progress bar so the timeline reads like the real player.
-export function VideoPlaceholder({ meeting }: { meeting: Meeting }) {
+export function VideoPlaceholder({ meeting, note: customNote }: { meeting: Meeting; note?: string }) {
   const [note, setNote] = useState(false);
 
   return (
@@ -31,7 +31,7 @@ export function VideoPlaceholder({ meeting }: { meeting: Meeting }) {
           role="status"
           className="absolute left-1/2 top-[calc(50%+3rem)] -translate-x-1/2 rounded-md bg-black/70 px-3 py-1.5 text-center text-xs text-white"
         >
-          Playback is stubbed: recording and capture are out of scope for this build.
+          {customNote ?? "Playback is stubbed: recording and capture are out of scope for this build."}
         </p>
       )}
 
