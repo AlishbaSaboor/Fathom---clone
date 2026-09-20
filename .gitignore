@@ -15,3 +15,6 @@ node_modules
 .env
 .env.*
 !.env.example
+
+# dev server output when started detached (see .next-dev-logs/)
+.next-dev-logs/
