@@ -1,0 +1,43 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { CheckIcon, CopyIcon } from "./icons";
+
+export function CopyButton({
+  getText,
+  label,
+  copiedLabel = "Copied",
+  className = "",
+}: {
+  getText: () => string;
+  label: string;
+  copiedLabel?: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(getText());
+      setCopied(true);
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Clipboard can be unavailable (insecure context, denied permission); nothing to recover.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className={`inline-flex items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-violet-900 dark:bg-violet-950/60 dark:text-violet-200 dark:hover:bg-violet-900/60 ${className}`}
+    >
+      {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      <span aria-live="polite">{copied ? copiedLabel : label}</span>
+    </button>
+  );
+}
