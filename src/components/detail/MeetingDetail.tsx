@@ -47,6 +47,7 @@ export function MeetingDetail({
   readOnly = false,
   media,
   onDelete,
+  onDownload,
 }: {
   meeting: Meeting;
   readOnly?: boolean;
@@ -54,6 +55,8 @@ export function MeetingDetail({
   media?: MediaSource;
   /** Set for uploaded recordings: lets the owner remove it from this browser. */
   onDelete?: () => void;
+  /** Set for uploaded recordings whose file is available: saves the original file. */
+  onDownload?: () => void;
 }) {
   const [tab, setTab] = useState<TabId>("summary");
   const [template, setTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE);
@@ -137,10 +140,20 @@ export function MeetingDetail({
           onJump={jumpTo}
           readOnly={readOnly}
           onDelete={onDelete}
+          onDownload={onDownload}
         />
       </aside>
 
       <div className="min-w-0 [grid-area:tabs]">
+        {meeting.notice && (
+          <p
+            role="note"
+            className="mb-4 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200"
+          >
+            <span aria-hidden>⚠</span>
+            <span>{meeting.notice}</span>
+          </p>
+        )}
         <div className="mb-5 flex flex-wrap items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
           <div role="tablist" aria-label="Meeting sections" onKeyDown={onTabKeyDown} className="flex gap-1">
             {TABS.map((t) => {

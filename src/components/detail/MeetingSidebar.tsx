@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AvatarStack } from "@/components/ui/Avatar";
-import { CopyButton } from "@/components/ui/CopyButton";
+import { useToast } from "@/components/ui/Toast";
 import { CalendarIcon, CheckIcon, ClockIcon, DiamondIcon, LinkIcon } from "@/components/ui/icons";
-import { actionItemsToText } from "@/lib/export";
 import { formatDate, formatDuration, formatTimestamp } from "@/lib/format";
 import type { Meeting } from "@/types/meeting";
+import { ActionItemActions } from "./ActionItemActions";
 import { ActionItemList } from "./ActionItemList";
+import { MeetingMenu } from "./MeetingMenu";
 
 const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Teams", upload: "Uploaded recording" } as const;
 
@@ -50,14 +51,19 @@ export function MeetingSidebar({
   onJump,
   readOnly,
   onDelete,
+  onDownload,
 }: {
   meeting: Meeting;
   done: Record<string, boolean>;
   onToggle: (id: string) => void;
   onJump: (t: number) => void;
   readOnly: boolean;
+  /** Uploaded recordings: remove the meeting and its file from this browser. */
   onDelete?: () => void;
+  /** Uploaded recordings: save the original file. Only provided when the file is available. */
+  onDownload?: () => void;
 }) {
+  const { show, toast } = useToast();
   const people = new Map(meeting.attendees.map((a) => [a.id, a]));
   const doneCount = meeting.actionItems.filter((a) => done[a.id]).length;
 
@@ -87,23 +93,21 @@ export function MeetingSidebar({
         </div>
       </div>
 
-      {/* Uploaded recordings exist only in this browser, so there is no public link to share. */}
-      {meeting.source === "upload" ? (
-        <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-          Stored in this browser only. It can&rsquo;t be shared with a link.
-        </p>
-      ) : (
-        <ShareButton token={meeting.shareToken} />
-      )}
-      {onDelete && (
-        <button
-          type="button"
-          onClick={onDelete}
-          className="text-xs font-medium text-rose-600 underline hover:text-rose-700 dark:text-rose-400"
-        >
-          Delete this recording
-        </button>
-      )}
+      {/* Share (or, for an upload, a note that it can't be shared) with the "…" menu beside it.
+          The public share view has no menu: viewers can't download or delete. */}
+      <div className="flex items-stretch gap-2">
+        <div className="min-w-0 flex-1">
+          {/* Uploaded recordings exist only in this browser, so there is no public link to share. */}
+          {meeting.source === "upload" ? (
+            <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+              Stored in this browser only. It can&rsquo;t be shared with a link.
+            </p>
+          ) : (
+            <ShareButton token={meeting.shareToken} />
+          )}
+        </div>
+        {!readOnly && <MeetingMenu meeting={meeting} onDownload={onDownload} onDelete={onDelete} onNotify={show} />}
+      </div>
       </div>
 
       <div className="space-y-6 max-lg:[grid-area:side]">
@@ -115,11 +119,13 @@ export function MeetingSidebar({
               {doneCount} of {meeting.actionItems.length} done
             </span>
           </h2>
-          <CopyButton
-            label="Copy"
-            getText={() => actionItemsToText(meeting.actionItems, done, meeting.attendees)}
-          />
         </div>
+
+        {meeting.actionItems.length > 0 && (
+          <div className="mb-3">
+            <ActionItemActions meeting={meeting} done={done} onNotify={show} />
+          </div>
+        )}
 
         <ActionItemList
           items={meeting.actionItems}
@@ -170,6 +176,7 @@ export function MeetingSidebar({
         </section>
       )}
       </div>
+      {toast}
     </div>
   );
 }

@@ -12,6 +12,11 @@ export interface ProcessedRecording {
   actionItems: { text: string; assigneeId: string | null; start: number }[];
   /** Which Gemini model produced it. */
   model: string;
+  /**
+   * Set when the transcript stops well before the end of the recording, so the
+   * page can say so instead of presenting half a transcript as the whole thing.
+   */
+  partial?: { transcribedThroughSec: number };
 }
 
 /** Error body shape shared by all API routes. */

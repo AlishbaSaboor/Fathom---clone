@@ -1,10 +1,12 @@
 "use client";
 
+import { formatDuration } from "@/lib/format";
 import {
   ACCEPTED_FORMATS_LABEL,
   MAX_DURATION_SEC,
   MAX_UPLOAD_BYTES,
   MIN_UPLOAD_BYTES,
+  exceedsDurationLimit,
   formatBytes,
   resolveMimeType,
 } from "./limits";
@@ -213,8 +215,8 @@ export async function processRecording(
   onProgress: (p: Progress) => void,
   signal: AbortSignal,
 ): Promise<ProcessedRecording> {
-  if (session.durationSec > MAX_DURATION_SEC) {
-    throw new UploadError("That recording is longer than 45 minutes. Try a shorter one.");
+  if (exceedsDurationLimit(session.durationSec)) {
+    throw new UploadError(`That recording is longer than ${formatDuration(MAX_DURATION_SEC)}. Try a shorter one.`);
   }
 
   if (!session.geminiFileName) {
@@ -231,7 +233,8 @@ export async function processRecording(
   }
 
   onProgress({ stage: "preparing" });
-  for (let i = 0; i < 60; i++) {
+  const MAX_POLLS = 180; // x 2 s = up to 6 minutes; big video files take a while to prepare
+  for (let i = 0; i < MAX_POLLS; i++) {
     const status = await api<FileStatusResponse>(`/api/recordings/file?name=${encodeURIComponent(session.geminiFileName)}`, { signal }).catch(
       (e) => {
         // The file vanished (expired or deleted): forget it so a retry uploads again.
@@ -244,8 +247,8 @@ export async function processRecording(
       session.geminiFileName = undefined;
       throw new UploadError("Gemini couldn't process that file. Try a different file or format.");
     }
-    if (i === 59) throw new UploadError("Gemini is taking too long to prepare the file. Please try again.", true);
-    await sleep(1500, signal);
+    if (i === MAX_POLLS - 1) throw new UploadError("Gemini is taking too long to prepare the file. Please try again.", true);
+    await sleep(2000, signal);
   }
 
   onProgress({ stage: "analyzing" });

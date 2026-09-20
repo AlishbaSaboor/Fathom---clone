@@ -118,6 +118,8 @@ export interface Meeting {
    * real playback and no share link.
    */
   source?: "seed" | "upload";
+  /** A note shown above the tabs, e.g. that an uploaded recording was only partly transcribed. */
+  notice?: string;
   /** For uploads: details of the original file. The bytes themselves live in IndexedDB. */
   media?: { fileName: string; mimeType: string; sizeBytes: number };
 }

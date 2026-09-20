@@ -17,6 +17,7 @@ import {
   ACCEPT_ATTRIBUTE,
   MAX_DURATION_SEC,
   MAX_UPLOAD_BYTES,
+  exceedsDurationLimit,
   formatBytes,
   resolveMimeType,
 } from "@/lib/recordings/limits";
@@ -88,7 +89,7 @@ export function UploadForm() {
     try {
       const d = await measureDuration(f);
       if (mine !== choiceId.current) return; // a newer file was chosen meanwhile
-      if (d > MAX_DURATION_SEC) {
+      if (exceedsDurationLimit(d)) {
         setProblem(`That recording is ${formatDuration(d)} long. The limit is ${formatDuration(MAX_DURATION_SEC)}.`);
       } else {
         setDurationSec(d);

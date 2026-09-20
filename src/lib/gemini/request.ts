@@ -80,6 +80,12 @@ export interface GenerateInput {
   budgetMs?: number;
   /** Time allowed for a single attempt, in ms. */
   attemptTimeoutMs?: number;
+  /**
+   * Don't start an attempt with less than this left in the budget: it could not
+   * finish before the platform kills the function, so the caller would get a
+   * bare timeout instead of a proper error it can retry.
+   */
+  minAttemptMs?: number;
 }
 
 export interface GenerateResult {
@@ -105,32 +111,48 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * stays inside the function's maximum duration.
  */
 export async function generateWithFallback(input: GenerateInput): Promise<GenerateResult> {
-  const { budgetMs = 240_000, attemptTimeoutMs = 100_000 } = input;
+  const { budgetMs = 240_000, attemptTimeoutMs = 100_000, minAttemptMs = 5_000 } = input;
   const deadline = Date.now() + budgetMs;
-  const body = JSON.stringify({
-    contents: input.contents,
-    ...(input.systemInstruction ? { systemInstruction: { parts: [{ text: input.systemInstruction }] } } : {}),
-    generationConfig: input.generationConfig,
-  });
+  const buildBody = (generationConfig: Record<string, unknown> | undefined) =>
+    JSON.stringify({
+      contents: input.contents,
+      ...(input.systemInstruction ? { systemInstruction: { parts: [{ text: input.systemInstruction }] } } : {}),
+      generationConfig,
+    });
 
   let last: GeminiError | null = null;
   let anyModelExisted = false;
 
   for (let pass = 1; pass <= 2; pass++) {
     for (const model of getModelChain()) {
+      // Each model gets the caller's config afresh: a thinking level one model refuses may suit the next.
+      let config = input.generationConfig;
       for (let attempt = 1; attempt <= 2; attempt++) {
         const remaining = deadline - Date.now();
-        if (remaining < 5_000) throw last ?? new GeminiError("timeout");
+        if (remaining < minAttemptMs) throw last ?? new GeminiError("timeout");
 
         try {
           const res = await geminiFetch(`/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body,
+            body: buildBody(config),
             timeoutMs: Math.min(attemptTimeoutMs, remaining),
           });
           const text = await res.text();
-          if (!res.ok) throw classifyFailure(res.status, text);
+          if (!res.ok) {
+            // Models differ in which thinking levels they accept (3.8 refuses "minimal"). Step down
+            // minimal -> low -> no thinkingConfig, retrying this model immediately each time.
+            if (res.status === 400 && config && "thinkingConfig" in config && /thinking/i.test(text)) {
+              const level = (config.thinkingConfig as { thinkingLevel?: string } | undefined)?.thinkingLevel;
+              config =
+                level === "minimal"
+                  ? { ...config, thinkingConfig: { thinkingLevel: "low" } }
+                  : Object.fromEntries(Object.entries(config).filter(([k]) => k !== "thinkingConfig"));
+              attempt--;
+              continue;
+            }
+            throw classifyFailure(res.status, text);
+          }
 
           anyModelExisted = true;
           return { text: extractText(text), model };

@@ -110,3 +110,19 @@ export function normalizeAnalysis(raw: unknown, durationSec: number, model: stri
     model,
   };
 }
+
+/**
+ * Does the transcript reach the end of the recording? Gemini can stop early on
+ * long audio and still report a normal finish, so compare where the last
+ * segment starts with the recording's length. A gap of more than 15% (and at
+ * least 90 seconds) counts as cut off; a shorter tail is usually just silence
+ * or closing chatter.
+ */
+export function transcriptCoverage(
+  transcript: { start: number }[],
+  durationSec: number,
+): { throughSec: number; partial: boolean } {
+  const throughSec = transcript.reduce((max, s) => Math.max(max, s.start), 0);
+  const gap = durationSec - throughSec;
+  return { throughSec, partial: gap > Math.max(90, durationSec * 0.15) };
+}

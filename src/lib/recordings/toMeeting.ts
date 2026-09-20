@@ -1,3 +1,4 @@
+import { formatTimestamp } from "@/lib/format";
 import type { Meeting, MeetingListItem, SummarySection } from "@/types/meeting";
 import type { ProcessedRecording } from "./types";
 
@@ -88,6 +89,9 @@ export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
     })),
     highlights: [],
     source: "upload",
+    notice: p.partial
+      ? `Only the first ${formatTimestamp(p.partial.transcribedThroughSec)} of this ${formatTimestamp(meta.durationSec)} recording was transcribed. Gemini stopped early, which happens with long recordings. The summary and action items only cover that part. Try uploading a shorter recording.`
+      : undefined,
     media: { fileName: meta.fileName, mimeType: meta.mimeType, sizeBytes: meta.sizeBytes },
   };
 }

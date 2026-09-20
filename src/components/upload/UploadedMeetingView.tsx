@@ -67,6 +67,23 @@ export function UploadedMeetingView({ id }: { id: string }) {
     );
   }
 
+  // Saves the real recording from IndexedDB under its original file name.
+  async function download() {
+    const blob = await getMedia(id).catch(() => undefined);
+    if (!blob) {
+      window.alert("The recording couldn't be read from this browser's storage.");
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = meeting!.media?.fileName ?? `${meeting!.title}.${blob.type.split("/")[1] || "bin"}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
+
   async function remove() {
     if (!window.confirm(`Delete "${meeting!.title}"? The recording and its transcript are removed from this browser and can't be recovered.`)) return;
     await deleteUpload(id);
@@ -81,7 +98,12 @@ export function UploadedMeetingView({ id }: { id: string }) {
       >
         <span aria-hidden>←</span> My Calls
       </Link>
-      <MeetingDetail meeting={meeting} media={media as MediaSource} onDelete={remove} />
+      <MeetingDetail
+        meeting={meeting}
+        media={media as MediaSource}
+        onDelete={remove}
+        onDownload={media !== "loading" && media.kind !== "unavailable" ? download : undefined}
+      />
     </>
   );
 }
