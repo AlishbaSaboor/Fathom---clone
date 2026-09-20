@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
+import { AppNav } from "@/components/AppNav";
 
-// App shell for the signed-in experience: header plus account menu. The public
+// App shell for the signed-in experience: header, account menu and the My
+// Calls / Team Calls / Playlists / Alerts / Deals nav row. The public
 // share route lives in the (share) group and deliberately does not use this
 // layout, so it never renders an account menu.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
           <AccountMenu />
         </div>
+        <AppNav />
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>
