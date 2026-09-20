@@ -62,3 +62,19 @@ export interface AskRequest {
 export interface AskResponse {
   answer: string;
 }
+
+/** Account-level Ask Fathom: one question across every call, answered from summaries. */
+export interface AskAllRequest {
+  question: string;
+  history?: { role: "user" | "assistant"; text: string }[];
+  /** The visitor's local date (YYYY-MM-DD), so "looming deadlines" is judged against today. */
+  today?: string;
+  /** Digests of the visitor's uploaded calls. They only exist in the browser, so they travel with the question. */
+  uploads?: { id: string; title: string; date: string; digest: string }[];
+}
+export interface AskAllResponse {
+  answer: string;
+  followUps: string[];
+  /** How many calls the answer was based on. */
+  analyzed: number;
+}

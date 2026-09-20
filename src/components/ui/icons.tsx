@@ -168,3 +168,21 @@ export function MailIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 19V5M5 12l7-7 7 7" />
+    </svg>
+  );
+}
+
+/** "Collapse the side panel": a window with a right-hand pane and an arrow pointing into it. */
+export function PanelRightIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M15 4v16M8 12h4M10 10l2 2-2 2" />
+    </svg>
+  );
+}
