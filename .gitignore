@@ -1,0 +1,2 @@
+# hook bookkeeping only; .agent-logs/ is intentionally NOT ignored
+.claude/hooks/.state/
