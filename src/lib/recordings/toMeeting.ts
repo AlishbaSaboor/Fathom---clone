@@ -1,5 +1,6 @@
 import { formatTimestamp } from "@/lib/format";
 import type { Meeting, MeetingListItem, SummarySection } from "@/types/meeting";
+import { transcriptCoverage } from "./normalize";
 import type { ProcessedRecording } from "./types";
 
 const AVATAR_COLORS = ["#7c3aed", "#0891b2", "#db2777", "#ea580c", "#16a34a", "#ca8a04", "#2563eb", "#b91c1c"];
@@ -89,11 +90,23 @@ export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
     })),
     highlights: [],
     source: "upload",
-    notice: p.partial
-      ? `Only the first ${formatTimestamp(p.partial.transcribedThroughSec)} of this ${formatTimestamp(meta.durationSec)} recording was transcribed. Gemini stopped early, which happens with long recordings. The summary and action items only cover that part. Try uploading a shorter recording.`
-      : undefined,
+    notice: coverageNotice(
+      p.transcript.map((t) => ({ start: t.start, text: t.text })),
+      meta.durationSec,
+    ),
     media: { fileName: meta.fileName, mimeType: meta.mimeType, sizeBytes: meta.sizeBytes },
   };
+}
+
+/**
+ * A warning when the transcript seems to end well before the recording does.
+ * Worked out from the transcript itself rather than stored, so it is always
+ * current: re-checked whenever an upload is loaded (see storage.ts).
+ */
+export function coverageNotice(transcript: { start: number; text: string }[], durationSec: number): string | undefined {
+  const { throughSec, partial } = transcriptCoverage(transcript, durationSec);
+  if (!partial) return undefined;
+  return `This transcript seems to stop at about ${formatTimestamp(throughSec)} of a ${formatTimestamp(durationSec)} recording, so the end of the call may be missing. The summary and action items only cover what was transcribed. Try uploading it again, or a shorter recording.`;
 }
 
 /** The lightweight row My Calls needs for an uploaded meeting. */

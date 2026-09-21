@@ -111,18 +111,42 @@ export function normalizeAnalysis(raw: unknown, durationSec: number, model: stri
   };
 }
 
+/** Spoken units in a line: words, plus half a unit per CJK character (those scripts have no spaces). */
+const CJK = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/g;
+function speechUnits(text: string): number {
+  const cjk = text.match(CJK)?.length ?? 0;
+  const latin = text.replace(CJK, " ").split(/\s+/).filter(Boolean).length;
+  return latin + cjk * 0.5;
+}
+
+/**
+ * Speaking rate used to estimate how long a turn lasts. 2 words a second is 120
+ * a minute, slower than typical speech (130-170), so the estimate errs late,
+ * which leans toward "complete" rather than a false alarm.
+ */
+const WORDS_PER_SECOND = 2;
+
 /**
  * Does the transcript reach the end of the recording? Gemini can stop early on
- * long audio and still report a normal finish, so compare where the last
- * segment starts with the recording's length. A gap of more than 15% (and at
- * least 90 seconds) counts as cut off; a shorter tail is usually just silence
- * or closing chatter.
+ * long audio and still report a normal finish, so compare where the transcript
+ * ends with the recording's length.
+ *
+ * Where a turn *starts* is not where the transcript ends: one narrator talking
+ * for two minutes is a single turn, so a complete 4:12 transcript can have its
+ * last turn start at 2:11. Each turn's end is therefore estimated from its
+ * start plus how long its words take to say. A gap of more than 15% (and at
+ * least 90 seconds) counts as cut off; a shorter tail is usually silence or
+ * closing chatter. Known limit: a recording that ends in minutes of silence or
+ * music looks cut off too, since only text is inspected.
  */
 export function transcriptCoverage(
-  transcript: { start: number }[],
+  transcript: { start: number; text: string }[],
   durationSec: number,
 ): { throughSec: number; partial: boolean } {
-  const throughSec = transcript.reduce((max, s) => Math.max(max, s.start), 0);
+  const throughSec = Math.min(
+    durationSec,
+    Math.round(transcript.reduce((max, s) => Math.max(max, s.start + speechUnits(s.text) / WORDS_PER_SECOND), 0)),
+  );
   const gap = durationSec - throughSec;
   return { throughSec, partial: gap > Math.max(90, durationSec * 0.15) };
 }

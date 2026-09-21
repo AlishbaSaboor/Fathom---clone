@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { Meeting } from "@/types/meeting";
+import { coverageNotice } from "./toMeeting";
 
 // Uploaded meetings live only in this browser: there is no database, and on
 // Vercel nothing in server memory survives between requests.
@@ -25,10 +26,14 @@ function parse(raw: string | null): Meeting[] {
   try {
     const list = JSON.parse(raw);
     if (!Array.isArray(list)) return [];
-    return list.filter(
-      (m): m is Meeting =>
-        !!m && typeof m.id === "string" && Array.isArray(m.transcript) && !!m.summaries?.general && m.source === "upload",
-    );
+    return list
+      .filter(
+        (m): m is Meeting =>
+          !!m && typeof m.id === "string" && Array.isArray(m.transcript) && !!m.summaries?.general && m.source === "upload",
+      )
+      // The "transcript seems cut off" notice is worked out from the transcript each time an upload is loaded,
+      // not trusted from storage, so a fix to how it is judged also corrects recordings saved earlier.
+      .map((m) => ({ ...m, notice: coverageNotice(m.transcript, m.durationSec) }));
   } catch {
     return [];
   }

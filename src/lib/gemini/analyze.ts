@@ -1,7 +1,7 @@
 import "server-only";
 import { formatDuration } from "@/lib/format";
 import { LOW_THINKING_ABOVE_SEC, MAX_DURATION_SEC, exceedsDurationLimit } from "@/lib/recordings/limits";
-import { normalizeAnalysis, transcriptCoverage } from "@/lib/recordings/normalize";
+import { normalizeAnalysis } from "@/lib/recordings/normalize";
 import type { ProcessedRecording } from "@/lib/recordings/types";
 import { GeminiError } from "./errors";
 import { deleteFile, getFile } from "./files";
@@ -118,9 +118,6 @@ export async function analyzeRecording(fileName: string, durationSec: number): P
     }
     const result = normalizeAnalysis(raw, durationSec, model);
     if (!result) throw new GeminiError("empty");
-    // Gemini can stop early on long audio and still say it finished normally. Never present that as complete.
-    const coverage = transcriptCoverage(result.transcript, durationSec);
-    if (coverage.partial) result.partial = { transcribedThroughSec: coverage.throughSec };
     await deleteFile(fileName);
     return result;
   }
