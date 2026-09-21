@@ -122,7 +122,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
 
 function CardList({ matches, narrow }: { matches: MeetingMatch[]; narrow: boolean }) {
   return (
-    <ul className={`grid gap-5 sm:grid-cols-2 ${narrow ? "" : "lg:grid-cols-3"}`}>
+    <ul className={`grid gap-5 sm:grid-cols-2 ${narrow ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
       {matches.map((match) => (
         <li key={match.meeting.id} className="flex">
           <MeetingCard match={match} />

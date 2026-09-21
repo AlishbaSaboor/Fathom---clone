@@ -96,11 +96,14 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
 export function AskAllPanel({
   meetings,
   className,
+  state,
   onHideDesktop,
   onCloseMobile,
 }: {
   meetings: MeetingListItem[];
   className: string;
+  /** Read by the page layout (via the data attribute) to make room for the column. */
+  state: "open" | "hidden";
   onHideDesktop: () => void;
   onCloseMobile: () => void;
 }) {
@@ -223,7 +226,7 @@ export function AskAllPanel({
   const chips = (!empty && last?.role === "assistant" && !last.error && last.followUps?.length ? last.followUps : STOCK_SUGGESTIONS);
 
   return (
-    <aside aria-label="Ask Fathom" className={`min-w-0 flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}>
+    <aside aria-label="Ask Fathom" data-ask-panel={state === "open" ? "open" : undefined} className={`min-w-0 flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}>
       <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">
           <SparkleIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />

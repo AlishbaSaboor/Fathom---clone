@@ -21,7 +21,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <AppNav />
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      {/* My Calls has a fixed right-hand Ask Fathom column (or a slim rail when hidden). It says which through a
+          data attribute; the page reads it here to reserve room, so the shell stays a server component. The
+          content keeps its left edge in line with the header and only gives up as much on the right as the
+          column needs: none on a wide window, where the centred content already stops short of it. */}
+      <div className="lg:has-[[data-ask-panel=open]]:[--ask-w:340px] lg:has-[[data-ask-panel=hidden]]:[--ask-w:2.5rem]">
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:pr-[calc(1.5rem+max(0px,var(--ask-w,0px)-max(0px,(100%-72rem)/2)))]">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

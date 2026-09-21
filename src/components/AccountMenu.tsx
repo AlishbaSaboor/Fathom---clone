@@ -1,68 +1,55 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
+import {
+  BookIcon,
+  CodeIcon,
+  DownloadIcon,
+  HelpCircleIcon,
+  LogOutIcon,
+  VideoIcon,
+} from "@/components/ui/icons";
+import { useToast } from "@/components/ui/Toast";
 
 // Auth and accounts are out of scope for this build, so this is a static
-// stand-in for the real account menu. It exists so the app shell looks right
-// and so the public share view has something visible to leave out.
-const DEMO_USER = { name: "Demo User", email: "demo@lumenapp.io" };
+// stand-in for the real account menu, laid out like Fathom's: help links, legal
+// links, then app actions. Every entry is a stub that answers "Not part of this
+// build". There is deliberately no "Logged in as" line: with no account system,
+// showing an email would be misleading.
+const icon = "h-4 w-4 text-zinc-500 dark:text-zinc-400";
+
+const ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBefore?: boolean }[] = [
+  { id: "start-test-call", label: "Start Test Call", icon: <VideoIcon className={icon} /> },
+  { id: "tutorial", label: "Tutorial", icon: <BookIcon className={icon} /> },
+  { id: "faqs", label: "FAQs", icon: <HelpCircleIcon className={icon} /> },
+  { id: "developers", label: "Developers", icon: <CodeIcon className={icon} /> },
+  { id: "privacy", label: "Privacy Policy", separatorBefore: true },
+  { id: "terms", label: "Terms of Service" },
+  { id: "security", label: "Security & Compliance" },
+  { id: "status", label: "System Status" },
+  { id: "download-app", label: "Download App", icon: <DownloadIcon className={icon} />, separatorBefore: true },
+  { id: "logout", label: "Logout", icon: <LogOutIcon className={icon} /> },
+];
 
 export function AccountMenu() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const { show, toast } = useToast();
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const items: MenuItem[] = ENTRIES.map((e) => ({
+    ...e,
+    onSelect: () => show("Not part of this build", "info"),
+  }));
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Account menu"
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
-      >
-        DU
-      </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-20 mt-2 w-56 rounded-lg border border-zinc-200 bg-white p-1 text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-        >
-          <div className="px-3 py-2">
-            <p className="font-medium">{DEMO_USER.name}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{DEMO_USER.email}</p>
-          </div>
-          <hr className="my-1 border-zinc-200 dark:border-zinc-700" />
-          <button
-            role="menuitem"
-            disabled
-            className="block w-full rounded px-3 py-2 text-left text-zinc-400"
-          >
-            Settings (not built)
-          </button>
-          <button
-            role="menuitem"
-            disabled
-            className="block w-full rounded px-3 py-2 text-left text-zinc-400"
-          >
-            Sign out (no auth in this build)
-          </button>
-        </div>
-      )}
-    </div>
+    <>
+      <DropdownMenu
+        items={items}
+        ariaLabel="Account menu"
+        align="right"
+        menuClassName="w-60"
+        triggerClassName="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+        triggerChildren="DU"
+      />
+      {toast}
+    </>
   );
 }
