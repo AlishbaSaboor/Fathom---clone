@@ -13,7 +13,7 @@ export const productStandup: Meeting = {
   date: "2026-09-17T09:30:00Z",
   durationSec: 480,
   platform: "meet",
-  poster: { from: "#4f46e5", to: "#7c3aed" },
+  poster: { from: "#1e40af", to: "#2563eb" },
 
   attendees: [
     { id: "priya", name: "Priya Nair", email: "priya@lumenapp.io", role: "Product Manager", avatarColor: "#7c3aed", isHost: true },
