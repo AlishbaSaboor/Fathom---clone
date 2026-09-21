@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { AvatarStack } from "@/components/ui/Avatar";
-import { CalendarIcon, ClockIcon, PlayIcon, TrashIcon } from "@/components/ui/icons";
+import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
+import { CalendarIcon, ClockIcon, LinkIcon, MoreVerticalIcon, PlayIcon, TrashIcon } from "@/components/ui/icons";
+import { useToast } from "@/components/ui/Toast";
+import { copyRich } from "@/lib/clipboard";
 import { formatDate, formatDuration } from "@/lib/format";
 import { deleteUpload } from "@/lib/recordings/storage";
 import type { MeetingMatch } from "@/lib/search";
@@ -14,6 +17,22 @@ export function MeetingCard({ match }: { match: MeetingMatch }) {
   const uploaded = meeting.source === "upload";
   // Uploaded meetings live in this browser only, so they open on their own route.
   const href = uploaded ? `/uploads/${meeting.id}` : `/meetings/${meeting.id}`;
+
+  const { show, toast } = useToast();
+
+  async function copyShareLink() {
+    const ok = await copyRich(`${window.location.origin}/share/upload/${meeting.shareToken}`);
+    show(ok ? "Share link copied" : "Couldn't copy the link", ok ? "success" : "error");
+  }
+
+  // Copy Share Link only once the upload has a share link; an older one (or one saved while sharing was
+  // unavailable) has nothing to share, so it just gets Delete.
+  const menu: MenuItem[] = [
+    ...(meeting.shareToken
+      ? [{ id: "share", label: "Copy Share Link", icon: <LinkIcon className="h-4 w-4" />, onSelect: () => void copyShareLink() }]
+      : []),
+    { id: "delete", label: "Delete", icon: <TrashIcon className="h-4 w-4" />, danger: true, onSelect: remove },
+  ];
 
   function remove() {
     if (window.confirm(`Delete "${meeting.title}"? The recording and its transcript are removed from this browser and can't be recovered. If you shared it, the link keeps working for up to 30 days.`)) {
@@ -78,15 +97,18 @@ export function MeetingCard({ match }: { match: MeetingMatch }) {
 
       {/* A sibling of the link, not inside it: a button can't be nested in an anchor. */}
       {uploaded && (
-        <button
-          type="button"
-          onClick={remove}
-          aria-label={`Delete ${meeting.title}`}
-          className="absolute right-2 top-2 rounded-md bg-black/55 p-1.5 text-white opacity-0 transition hover:bg-rose-600 focus-visible:opacity-100 group-hover:opacity-100 max-md:opacity-100"
-        >
-          <TrashIcon className="h-4 w-4" />
-        </button>
+        <div className="absolute right-2 top-2 z-10">
+          <DropdownMenu
+            items={menu}
+            ariaLabel={`More actions for ${meeting.title}`}
+            align="right"
+            menuClassName="w-48"
+            triggerClassName="flex h-8 w-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition hover:bg-black/75 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100"
+            triggerChildren={<MoreVerticalIcon className="h-4 w-4" />}
+          />
+        </div>
       )}
+      {toast}
     </div>
   );
 }

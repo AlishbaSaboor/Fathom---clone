@@ -120,5 +120,6 @@ export function toListItem(m: Meeting): MeetingListItem {
     source: "upload",
     poster: m.poster,
     attendees: m.attendees,
+    shareToken: m.shareToken,
   };
 }

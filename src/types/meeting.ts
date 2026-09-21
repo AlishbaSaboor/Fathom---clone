@@ -135,4 +135,7 @@ export type SummarySet = { general: SummarySection[] } & Partial<Record<Exclude<
 export type MeetingListItem = Pick<
   Meeting,
   "id" | "title" | "date" | "durationSec" | "platform" | "poster" | "attendees" | "source"
->;
+> & {
+  /** Uploads only: token of the shareable copy ("" or absent when there isn't one). Demo meetings leave it out. */
+  shareToken?: string;
+};
