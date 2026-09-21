@@ -11,6 +11,10 @@ A 1-day rebuild of [fathom.video](https://fathom.video), the AI meeting notetake
 - Meeting detail page: video, AI summary with switchable templates, transcript with search and highlights, action items
 - Public share links for the seeded demo meetings
 
+## Upload limits
+
+Recordings can be up to **200 MB** and **30 minutes** long, in WAV, MP3, M4A, AAC, OGG, FLAC, MP4, MOV, or WebM. The 30-minute cap is deliberate: in testing, Gemini transcribed a 62-minute recording in one pass but stopped partway through at about 30 minutes, so longer files are refused up front rather than silently truncated.
+
 ## What's intentionally not built
 
 - **Live meeting capture** (a bot joining Zoom/Meet/Teams): explicitly allowed to stub per the assignment brief. Seeded meetings use realistic mock data instead.
@@ -30,8 +34,10 @@ npm install
 ```
 
 Create a `.env.local` file in the project root:
-GEMINI_API_KEY=your-gemini-api-key-here
 
+```bash
+GEMINI_API_KEY=your-gemini-api-key-here
+```
 
 Then run:
 
