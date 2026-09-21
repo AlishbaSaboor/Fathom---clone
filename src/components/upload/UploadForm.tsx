@@ -24,7 +24,7 @@ import {
 import { StorageFullError, deleteMedia, saveMedia, saveUpload } from "@/lib/recordings/storage";
 import { buildMeeting } from "@/lib/recordings/toMeeting";
 
-type Status = "idle" | "running" | "error";
+type Status = "idle" | "running" | "done" | "error";
 type Step = "upload" | "prepare" | "analyze" | "save";
 
 const STEPS: { id: Step; label: string }[] = [
@@ -56,6 +56,9 @@ export function UploadForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   // Counts file choices so a slow measurement of an earlier file can't overwrite a later choice.
   const choiceId = useRef(0);
+  // Set the moment the result is saved: from then on nothing may hold the user back on this page.
+  const leaving = useRef(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   // Ticks only while Gemini is working, to show how long it has been.
   useEffect(() => {
@@ -68,13 +71,39 @@ export function UploadForm() {
   // Leaving mid-upload would lose the work, so ask first.
   useEffect(() => {
     if (status !== "running") return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    const warn = (e: BeforeUnloadEvent) => {
+      if (!leaving.current) e.preventDefault();
+    };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [status]);
 
+  // The result is saved and the client-side navigation to it has been requested. That navigation can stall or
+  // fail (a hung request, a tab loaded before a new deployment), and nothing else would move this tab on, so
+  // back it with a full page load: after a short wait, and the moment the tab is visible or focused again.
+  useEffect(() => {
+    if (!savedId) return;
+    const url = `/uploads/${savedId}`;
+    const go = () => {
+      // A full page load on purpose: this is the fallback for when router.push did not get us there.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      if (window.location.pathname === "/upload") window.location.assign(url);
+    };
+    const timer = window.setTimeout(go, 2500);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") go();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", go);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", go);
+    };
+  }, [savedId]);
+
   async function choose(f: File | undefined) {
-    if (!f || status === "running") return;
+    if (!f || status === "running" || status === "done") return;
     const mine = ++choiceId.current;
     setFile(f);
     setDurationSec(null);
@@ -104,7 +133,7 @@ export function UploadForm() {
   }
 
   function clear() {
-    if (status === "running") return;
+    if (status === "running" || status === "done") return;
     choiceId.current++; // ignore any measurement still in flight
     setFile(null);
     setDurationSec(null);
@@ -128,7 +157,7 @@ export function UploadForm() {
   }
 
   async function run() {
-    if (!file || !session.current || status === "running") return;
+    if (!file || !session.current || status === "running" || status === "done") return;
     const ac = new AbortController();
     abort.current = ac;
     setStatus("running");
@@ -159,6 +188,11 @@ export function UploadForm() {
         await deleteMedia(id).catch(() => undefined);
         throw e instanceof StorageFullError ? new UploadError(e.message) : e;
       }
+      // Saved. Disarm the leave-guard first (a full page load is the fallback route to the result, and it must
+      // never raise a prompt), show the done state, then go to the result.
+      leaving.current = true;
+      setSavedId(id);
+      setStatus("done");
       router.push(`/uploads/${id}`);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
@@ -176,6 +210,7 @@ export function UploadForm() {
   }
 
   const running = status === "running";
+  const busy = running || status === "done"; // the form is locked while working and once finished
   const ready = !!file && !!durationSec && !problem && !measuring;
 
   return (
@@ -189,7 +224,7 @@ export function UploadForm() {
       <label
         onDragOver={(e) => {
           e.preventDefault();
-          if (!running) setDragging(true);
+          if (!busy) setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => {
@@ -201,7 +236,7 @@ export function UploadForm() {
           dragging
             ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40"
             : "border-zinc-300 hover:border-blue-400 dark:border-zinc-700"
-        } ${running ? "pointer-events-none opacity-60" : ""}`}
+        } ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
         <UploadIcon className="h-8 w-8 text-blue-600 dark:text-blue-300" />
         <span className="mt-3 text-sm font-medium">
@@ -214,7 +249,7 @@ export function UploadForm() {
           ref={inputRef}
           type="file"
           accept={ACCEPT_ATTRIBUTE}
-          disabled={running}
+          disabled={busy}
           onChange={(e) => void choose(e.target.files?.[0])}
           className="sr-only"
           aria-label="Choose an audio or video file"
@@ -232,7 +267,7 @@ export function UploadForm() {
               {durationSec ? ` · ${formatDuration(durationSec)}` : ""}
             </p>
           </div>
-          {!running && (
+          {!busy && (
             <button
               type="button"
               onClick={clear}
@@ -271,7 +306,7 @@ export function UploadForm() {
       )}
 
       {/* process */}
-      {status !== "running" && (
+      {!busy && (
         <div className={status === "error" ? "mt-4" : "mt-6"}>
           <button
             type="button"
@@ -290,12 +325,12 @@ export function UploadForm() {
         </div>
       )}
 
-      {/* progress */}
-      {running && (
+      {/* progress, then the done state */}
+      {busy && (
         <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900" aria-live="polite">
           <ol className="space-y-3">
             {STEPS.map((s, i) => {
-              const current = STEPS.findIndex((x) => x.id === step);
+              const current = status === "done" ? STEPS.length : STEPS.findIndex((x) => x.id === step);
               const state = i < current ? "done" : i === current ? "active" : "todo";
               return (
                 <li key={s.id} className="flex items-start gap-3 text-sm">
@@ -331,13 +366,22 @@ export function UploadForm() {
               );
             })}
           </ol>
-          <button
-            type="button"
-            onClick={cancel}
-            className="mt-5 text-sm font-medium text-zinc-500 underline hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            Cancel
-          </button>
+          {status === "done" && savedId ? (
+            <p role="status" className="mt-5 text-sm font-medium">
+              Done. Opening your recording…{" "}
+              <a href={`/uploads/${savedId}`} className="font-semibold text-blue-700 underline dark:text-blue-300">
+                Open it now
+              </a>
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={cancel}
+              className="mt-5 text-sm font-medium text-zinc-500 underline hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       )}
 
