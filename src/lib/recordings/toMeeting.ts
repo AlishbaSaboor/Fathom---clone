@@ -67,7 +67,7 @@ export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
 
   return {
     id: meta.id,
-    shareToken: "", // uploads exist only in this browser, so there is nothing to share
+    shareToken: p.shareToken ?? "", // "" when no shareable copy was stored (sharing unavailable, or saved before sharing existed)
     title: p.title,
     date: meta.createdAt,
     durationSec: meta.durationSec,

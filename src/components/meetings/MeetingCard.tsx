@@ -16,7 +16,7 @@ export function MeetingCard({ match }: { match: MeetingMatch }) {
   const href = uploaded ? `/uploads/${meeting.id}` : `/meetings/${meeting.id}`;
 
   function remove() {
-    if (window.confirm(`Delete "${meeting.title}"? The recording and its transcript are removed from this browser and can't be recovered.`)) {
+    if (window.confirm(`Delete "${meeting.title}"? The recording and its transcript are removed from this browser and can't be recovered. If you shared it, the link keeps working for up to 30 days.`)) {
       void deleteUpload(meeting.id);
     }
   }

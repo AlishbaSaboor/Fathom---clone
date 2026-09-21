@@ -1,7 +1,9 @@
 import { analyzeRecording } from "@/lib/gemini/analyze";
 import { GeminiError } from "@/lib/gemini/errors";
 import { isValidFileName } from "@/lib/gemini/files";
+import { buildMeeting } from "@/lib/recordings/toMeeting";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
+import { saveUploadShare } from "@/lib/uploadShare";
 
 // Step 3: one Gemini call that returns the transcript, title, summary and
 // action items. Gemini can take 30-40s (longer when it is overloaded and this
@@ -17,7 +19,13 @@ export async function POST(request: Request) {
       throw new GeminiError("invalid_input");
     }
     const result = await analyzeRecording(fileName, durationSec);
-    return json(result);
+    // Store a shareable copy of the RESULT (never the recording) and hand back its token. The result is built
+    // here on the server, so nothing a client sends ends up in the store. If the store is unavailable the
+    // user still gets their transcript, just without a link.
+    const shareToken = await saveUploadShare(
+      buildMeeting(result, { id: "shared", createdAt: new Date().toISOString(), durationSec, fileName: "", mimeType: "", sizeBytes: 0 }),
+    );
+    return json(shareToken ? { ...result, shareToken } : result);
   } catch (e) {
     return errorResponse(e);
   }
