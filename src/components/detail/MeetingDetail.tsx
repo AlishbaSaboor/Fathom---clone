@@ -11,6 +11,7 @@ import { MediaPlayer, type PlayerHandle } from "./MediaPlayer";
 import { MeetingSidebar } from "./MeetingSidebar";
 import { SummaryTab } from "./summary/SummaryTab";
 import { TranscriptTab } from "./transcript/TranscriptTab";
+import { RecordingNote } from "./RecordingNote";
 import { VideoPlaceholder } from "./VideoPlaceholder";
 
 export type TabId = "summary" | "transcript" | "ask";
@@ -45,12 +46,15 @@ const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
 export function MeetingDetail({
   meeting,
   readOnly = false,
+  recordingNote,
   media,
   onDelete,
   onDownload,
 }: {
   meeting: Meeting;
   readOnly?: boolean;
+  /** Shared upload preview: the recording isn't stored server-side, so this note replaces the player. */
+  recordingNote?: string;
   /** Set for uploaded recordings, which have a real player. Seeded meetings keep the stubbed one. */
   media?: MediaSource;
   /** Set for uploaded recordings: lets the owner remove it from this browser. */
@@ -118,7 +122,9 @@ export function MeetingDetail({
   return (
     <div className="grid gap-6 [grid-template-areas:'video'_'head'_'tabs'_'side'] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'video_side'_'tabs_side']">
       <div className="[grid-area:video]">
-        {media && media.kind !== "unavailable" ? (
+        {recordingNote ? (
+          <RecordingNote meeting={meeting} note={recordingNote} />
+        ) : media && media.kind !== "unavailable" ? (
           <MediaPlayer ref={player} url={media.url} kind={media.kind} poster={meeting.poster} onTime={onPlaybackTime} />
         ) : (
           <VideoPlaceholder

@@ -12,6 +12,8 @@ export interface ProcessedRecording {
   actionItems: { text: string; assigneeId: string | null; start: number }[];
   /** Which Gemini model produced it. */
   model: string;
+  /** Set by the process route when a shareable copy was stored (/share/upload/<token>). Absent when sharing is unavailable. */
+  shareToken?: string;
 }
 
 /** Error body shape shared by all API routes. */

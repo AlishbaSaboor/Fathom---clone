@@ -16,14 +16,14 @@ const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Tea
 // app/(share)/share/[token]. There is no revocation or expiry (stubbed). It is
 // shown on the share page too, like the real product, where it just copies the
 // link the viewer is already on.
-function ShareButton({ token }: { token: string }) {
+function ShareButton({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/share/${token}`);
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
       setCopied(true);
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setCopied(false), 1800);
@@ -97,13 +97,18 @@ export function MeetingSidebar({
           The public share view has no menu: viewers can't download or delete. */}
       <div className="flex items-stretch gap-2">
         <div className="min-w-0 flex-1">
-          {/* Uploaded recordings exist only in this browser, so there is no public link to share. */}
+          {/* An upload gets a link to its transcript and summary when a shareable copy was stored; one saved
+              before that existed (or when sharing was unavailable) is browser-only and has nothing to share. */}
           {meeting.source === "upload" ? (
-            <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-              Stored in this browser only. It can&rsquo;t be shared with a link.
-            </p>
+            meeting.shareToken ? (
+              <ShareButton path={`/share/upload/${meeting.shareToken}`} />
+            ) : (
+              <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+                Stored in this browser only. It can&rsquo;t be shared with a link.
+              </p>
+            )
           ) : (
-            <ShareButton token={meeting.shareToken} />
+            <ShareButton path={`/share/${meeting.shareToken}`} />
           )}
         </div>
         {!readOnly && <MeetingMenu meeting={meeting} onDownload={onDownload} onDelete={onDelete} onNotify={show} />}

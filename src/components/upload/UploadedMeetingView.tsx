@@ -85,7 +85,7 @@ export function UploadedMeetingView({ id }: { id: string }) {
   }
 
   async function remove() {
-    if (!window.confirm(`Delete "${meeting!.title}"? The recording and its transcript are removed from this browser and can't be recovered.`)) return;
+    if (!window.confirm(`Delete "${meeting!.title}"? The recording and its transcript are removed from this browser and can't be recovered.${meeting!.shareToken ? " Its share link keeps working for up to 30 days." : ""}`)) return;
     await deleteUpload(id);
     router.replace("/");
   }

@@ -31,7 +31,7 @@ const STEPS: { id: Step; label: string }[] = [
   { id: "upload", label: "Uploading your recording" },
   { id: "prepare", label: "Preparing it for transcription" },
   { id: "analyze", label: "Transcribing and summarizing" },
-  { id: "save", label: "Saving to this browser" },
+  { id: "save", label: "Saving your result" },
 ];
 
 const newId = () => `up-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)).slice(0, 12)}`;
@@ -283,8 +283,9 @@ export function UploadForm() {
           </button>
           <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             Your recording is sent to Google&rsquo;s Gemini API to be transcribed, and is deleted from Gemini once
-            processing finishes. The result is stored only in this browser (it isn&rsquo;t saved on any server), so it
-            won&rsquo;t appear on other devices.
+            processing finishes. The recording itself stays only in this browser. The transcript, summary and action
+            items are also saved on our server for 30 days so the upload gets a share link: anyone with that link can
+            read them, and it can&rsquo;t be revoked early.
           </p>
         </div>
       )}
