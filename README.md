@@ -2,6 +2,8 @@
 
 A 1-day rebuild of [fathom.video](https://fathom.video), the AI meeting notetaker, built for the 8x Software Engineer assignment.
 
+**Live**: [https://fathom-clone-nine.vercel.app/]
+
 ## What's built
 
 - **Real upload feature**: upload a recording and get a genuine transcript, summary, key takeaways, and action items from the Gemini API, with real playback
