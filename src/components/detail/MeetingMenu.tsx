@@ -31,7 +31,7 @@ export function MeetingMenu({
       align="right"
       ariaLabel="More actions"
       menuClassName="w-56"
-      triggerClassName="flex h-full w-10 shrink-0 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      triggerClassName="flex h-full w-10 shrink-0 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       triggerChildren={<MoreVerticalIcon className="h-4 w-4" />}
       items={[
         {

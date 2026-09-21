@@ -62,7 +62,7 @@ export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
           onClick={() => setMobileOpen(true)}
           className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:hidden dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
-          <SparkleIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+          <SparkleIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           Ask Fathom
         </button>
       </div>

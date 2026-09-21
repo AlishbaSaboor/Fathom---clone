@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
 import { AppNav } from "@/components/AppNav";
+import { Logo } from "@/components/brand/Logo";
 
 // App shell for the signed-in experience: header, account menu and the My
 // Calls / Team Calls / Playlists / Alerts / Deals nav row. The public
@@ -11,11 +12,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-600 text-sm text-white">
-              F
-            </span>
-            Fathom Clone
+          <Link href="/">
+            <Logo />
           </Link>
           <AccountMenu />
         </div>

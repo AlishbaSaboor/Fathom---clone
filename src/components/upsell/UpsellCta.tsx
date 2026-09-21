@@ -14,7 +14,7 @@ export function UpsellCta({ feature, label = "Start 14-Day Trial" }: { feature: 
       <button
         type="button"
         onClick={() => setShown(true)}
-        className="rounded-md border-2 border-violet-600 px-9 py-3 text-base font-semibold text-violet-700 transition hover:bg-violet-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-violet-400 dark:text-violet-300 dark:hover:bg-violet-950/50"
+        className="rounded-md border-2 border-blue-600 px-9 py-3 text-base font-semibold text-blue-700 transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-400 dark:text-blue-300 dark:hover:bg-blue-950/50"
       >
         {label}
       </button>
@@ -37,7 +37,7 @@ export function UpsellCta({ feature, label = "Start 14-Day Trial" }: { feature: 
           </div>
           <p className="mt-1 text-zinc-600 dark:text-zinc-400">
             {feature} is a paid Fathom feature and out of scope here, so there are no trials or sign-ups.{" "}
-            <Link href="/" className="font-medium text-violet-700 underline dark:text-violet-300">
+            <Link href="/" className="font-medium text-blue-700 underline dark:text-blue-300">
               Back to My Calls
             </Link>
           </p>

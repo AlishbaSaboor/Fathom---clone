@@ -32,7 +32,7 @@ function Row({
         checked={checked}
         disabled={readOnly}
         onChange={() => onToggle(item.id)}
-        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-violet-600 disabled:cursor-default"
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-blue-600 disabled:cursor-default"
       />
       <div className="min-w-0 flex-1">
         <label
@@ -54,7 +54,7 @@ function Row({
             type="button"
             onClick={() => onJump(item.timestamp)}
             title="Jump to this moment in the transcript"
-            className="rounded px-1 tabular-nums text-violet-600 hover:underline dark:text-violet-300"
+            className="rounded px-1 tabular-nums text-blue-600 hover:underline dark:text-blue-300"
           >
             @ {formatTimestamp(item.timestamp)}
           </button>
@@ -94,7 +94,7 @@ export function ActionItemList(props: Props) {
         const doneInGroup = g.items.filter((a) => props.done[a.id]).length;
         return (
           <details key={g.name} open className="group rounded-lg border border-zinc-200 dark:border-zinc-800">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-violet-600 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
               <span>{g.name}</span>
               <span className="flex items-center gap-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
                 <span className="tabular-nums">

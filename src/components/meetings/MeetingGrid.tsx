@@ -37,7 +37,7 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by title or attendee"
             aria-label="Search calls by title or attendee"
-            className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm shadow-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
+            className="w-full rounded-lg border border-zinc-300 bg-white py-2.5 pl-10 pr-10 text-sm shadow-sm outline-none placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
@@ -53,7 +53,7 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
 
         <Link
           href="/upload"
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         >
           <UploadIcon className="h-4 w-4" />
           Upload a recording
@@ -75,7 +75,7 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
                 hydrated && (
                   <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
                     Upload a recording to see it here.{" "}
-                    <Link href="/upload" className="font-medium text-violet-600 hover:underline dark:text-violet-400">
+                    <Link href="/upload" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
                       Upload a recording
                     </Link>
                   </div>
@@ -98,7 +98,7 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="mt-4 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+            className="mt-4 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
           >
             Clear search
           </button>

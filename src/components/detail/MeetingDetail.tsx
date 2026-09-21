@@ -168,9 +168,9 @@ export function MeetingDetail({
                   aria-controls={`panel-${t.id}`}
                   tabIndex={selected ? 0 : -1}
                   onClick={() => changeTab(t.id)}
-                  className={`-mb-px whitespace-nowrap border-b-2 px-2.5 py-2.5 text-xs sm:px-3 font-semibold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-violet-600 ${
+                  className={`-mb-px whitespace-nowrap border-b-2 px-2.5 py-2.5 text-xs sm:px-3 font-semibold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600 ${
                     selected
-                      ? "border-violet-600 text-violet-700 dark:border-violet-400 dark:text-violet-300"
+                      ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
                       : "border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   }`}
                 >

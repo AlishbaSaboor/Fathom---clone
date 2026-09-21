@@ -197,13 +197,13 @@ export function UploadForm() {
           setDragging(false);
           void choose(e.dataTransfer.files[0]);
         }}
-        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-violet-600 ${
+        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-600 ${
           dragging
-            ? "border-violet-500 bg-violet-50 dark:bg-violet-950/40"
-            : "border-zinc-300 hover:border-violet-400 dark:border-zinc-700"
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40"
+            : "border-zinc-300 hover:border-blue-400 dark:border-zinc-700"
         } ${running ? "pointer-events-none opacity-60" : ""}`}
       >
-        <UploadIcon className="h-8 w-8 text-violet-600 dark:text-violet-300" />
+        <UploadIcon className="h-8 w-8 text-blue-600 dark:text-blue-300" />
         <span className="mt-3 text-sm font-medium">
           {file ? "Choose a different file" : "Choose an audio or video file, or drop it here"}
         </span>
@@ -277,7 +277,7 @@ export function UploadForm() {
             type="button"
             onClick={run}
             disabled={!ready}
-            className="w-full rounded-lg bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             {status === "error" && error?.retryable ? "Try again" : "Process"}
           </button>
@@ -302,7 +302,7 @@ export function UploadForm() {
                     {state === "done" ? (
                       <CheckIcon className="h-4 w-4 text-emerald-600" />
                     ) : state === "active" ? (
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600" role="status" aria-label="In progress" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600" role="status" aria-label="In progress" />
                     ) : (
                       <span className="h-2 w-2 rounded-full bg-zinc-300 dark:bg-zinc-700" />
                     )}
@@ -312,7 +312,7 @@ export function UploadForm() {
                     {state === "active" && s.id === "upload" && (
                       <div className="mt-2">
                         <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          <div className="h-full rounded-full bg-violet-600 transition-[width]" style={{ width: `${percent}%` }} />
+                          <div className="h-full rounded-full bg-blue-600 transition-[width]" style={{ width: `${percent}%` }} />
                         </div>
                         <p className="mt-1 text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{percent}%</p>
                       </div>

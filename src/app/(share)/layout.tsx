@@ -1,3 +1,4 @@
+import { Logo } from "@/components/brand/Logo";
 import { SignInButton } from "@/components/share/SignInButton";
 
 // Layout for the public share view, modeled on the real share page's header:
@@ -12,12 +13,7 @@ export default function ShareLayout({ children }: { children: React.ReactNode })
       <header className="relative z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex shrink-0 items-center gap-2 font-semibold">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-600 text-sm text-white">
-                F
-              </span>
-              Fathom Clone
-            </span>
+            <Logo className="shrink-0" />
             <span className="hidden truncate rounded-md bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800 sm:inline-block dark:bg-amber-950/60 dark:text-amber-300">
               Get your own free AI Notetaker <span aria-hidden>🔥</span>
             </span>

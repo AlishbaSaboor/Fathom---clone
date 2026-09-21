@@ -21,7 +21,7 @@ export function SignInButton() {
       <button
         type="button"
         onClick={show}
-        className="rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:hover:bg-zinc-800"
+        className="rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-800"
       >
         Sign In
       </button>

@@ -57,7 +57,7 @@ export function TemplateSwitcher({
         aria-expanded={open}
         aria-label={`Summary template: ${TEMPLATES[value].label}`}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+        className="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
       >
         {TEMPLATES[value].label}
         <ChevronDownIcon className="h-3.5 w-3.5" />
@@ -86,7 +86,7 @@ export function TemplateSwitcher({
                     <span className="block text-sm font-semibold">{t.label}</span>
                     <span className="block text-xs text-zinc-500 dark:text-zinc-400">{t.description}</span>
                   </span>
-                  {selected && <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />}
+                  {selected && <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />}
                 </button>
               </li>
             );

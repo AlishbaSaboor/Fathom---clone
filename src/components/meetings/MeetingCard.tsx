@@ -25,7 +25,7 @@ export function MeetingCard({ match }: { match: MeetingMatch }) {
     <div className="group relative flex w-full">
       <Link
         href={href}
-        className="flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 dark:border-zinc-800 dark:bg-zinc-900"
+        className="flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-zinc-800 dark:bg-zinc-900"
       >
         {/* Seeded meetings: a static generated poster, since recording and
             playback are out of scope for them (stubbed). Uploaded meetings have
@@ -69,7 +69,7 @@ export function MeetingCard({ match }: { match: MeetingMatch }) {
           </div>
 
           {matchedAttendees.length > 0 && (
-            <p className="rounded-md bg-violet-50 px-2 py-1 text-xs text-violet-800 dark:bg-violet-950 dark:text-violet-200">
+            <p className="rounded-md bg-blue-50 px-2 py-1 text-xs text-blue-800 dark:bg-blue-950 dark:text-blue-200">
               Attendee match: {matchedAttendees.map((a) => a.name).join(", ")}
             </p>
           )}

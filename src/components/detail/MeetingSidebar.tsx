@@ -36,7 +36,7 @@ function ShareButton({ token }: { token: string }) {
     <button
       type="button"
       onClick={copy}
-      className="flex w-full items-center justify-between rounded-md bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+      className="flex w-full items-center justify-between rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
     >
       <span aria-live="polite">{copied ? "Share link copied" : "Share"}</span>
       {copied ? <CheckIcon className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
@@ -150,15 +150,15 @@ export function MeetingSidebar({
           <ul className="space-y-3">
             {meeting.highlights.map((h) => (
               <li key={h.id} className="flex items-start gap-2.5">
-                <DiamondIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300" />
+                <DiamondIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-300" />
                 <div className="min-w-0 text-sm">
                   <p className="flex items-center gap-2">
-                    <span className="font-semibold text-violet-700 dark:text-violet-300">Highlight</span>
+                    <span className="font-semibold text-blue-700 dark:text-blue-300">Highlight</span>
                     <button
                       type="button"
                       onClick={() => onJump(h.timestamp)}
                       title="Jump to this moment in the transcript"
-                      className="rounded px-1 text-xs tabular-nums text-violet-600 hover:underline dark:text-violet-300"
+                      className="rounded px-1 text-xs tabular-nums text-blue-600 hover:underline dark:text-blue-300"
                     >
                       @ {formatTimestamp(h.timestamp)}
                     </button>

@@ -46,7 +46,7 @@ export function AccountMenu() {
         ariaLabel="Account menu"
         align="right"
         menuClassName="w-60"
-        triggerClassName="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+        triggerClassName="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         triggerChildren="DU"
       />
       {toast}

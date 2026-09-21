@@ -59,7 +59,7 @@ export function UploadedMeetingView({ id }: { id: string }) {
           <Link href="/" className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">
             Back to My Calls
           </Link>
-          <Link href="/upload" className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
+          <Link href="/upload" className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
             Upload a recording
           </Link>
         </div>

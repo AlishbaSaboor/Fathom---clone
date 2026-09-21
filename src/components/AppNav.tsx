@@ -19,7 +19,7 @@ const TABS = [
 ] as const;
 
 const tabBase =
-  "-mb-px whitespace-nowrap border-b-2 px-2 py-3 text-[13px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-violet-600 sm:px-3 sm:text-sm";
+  "-mb-px whitespace-nowrap border-b-2 px-2 py-3 text-[13px] font-medium transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600 sm:px-3 sm:text-sm";
 
 export function AppNav() {
   const pathname = usePathname();
@@ -27,7 +27,11 @@ export function AppNav() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      <nav aria-label="Primary" className="-mx-1 flex overflow-x-auto px-1">
+      {/* Scrolls sideways on narrow screens. overflow-x: auto also makes the row scroll vertically, and the tabs'
+          1px overhang (-mb-px, so the active underline sits on the header border) then produced a tiny native
+          scrollbar with up/down arrows under the account icon. overflow-y-hidden removes it and leaves the
+          pixels as they were (the overhanging row was always clipped). */}
+      <nav aria-label="Primary" className="-mx-1 flex overflow-x-auto overflow-y-hidden px-1">
         {TABS.map((tab) => {
           const active = tab.href === pathname;
           return (
@@ -37,7 +41,7 @@ export function AppNav() {
               aria-current={active ? "page" : undefined}
               className={`${tabBase} ${
                 active
-                  ? "border-violet-600 text-violet-700 dark:border-violet-400 dark:text-violet-300"
+                  ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
                   : "border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               }`}
             >

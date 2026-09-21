@@ -38,7 +38,7 @@ function AnswerText({ text, onJump }: { text: string; onJump: (t: number) => voi
               type="button"
               onClick={() => onJump(seconds)}
               title="Jump to this moment in the transcript"
-              className="rounded px-0.5 font-medium tabular-nums text-violet-700 underline decoration-dotted hover:bg-violet-100 dark:text-violet-300 dark:hover:bg-violet-950"
+              className="rounded px-0.5 font-medium tabular-nums text-blue-700 underline decoration-dotted hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-950"
             >
               {formatTimestamp(seconds)}
             </button>
@@ -183,7 +183,7 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
   return (
     <div className="flex min-h-80 min-w-0 flex-col">
       {empty && (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm text-violet-900 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200">
+        <div className="mb-4 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
           <SparkleIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
             Ask anything about this call. Answers are written by Gemini from the call&rsquo;s transcript, so they can
@@ -195,7 +195,7 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
       <div className="flex-1 space-y-3" aria-live="polite">
         {messages.map((m, i) =>
           m.role === "user" ? (
-            <p key={i} className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-violet-600 px-3 py-2 text-sm text-white">
+            <p key={i} className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-blue-600 px-3 py-2 text-sm text-white">
               {m.text}
             </p>
           ) : m.error ? (
@@ -266,12 +266,12 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
           maxLength={MAX_QUESTION_CHARS}
           aria-label="Ask a question about this call"
           placeholder="Ask anything about this call…"
-          className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900"
+          className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900"
         />
         <button
           type="submit"
           disabled={pending || !input.trim()}
-          className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Ask
         </button>

@@ -8,7 +8,7 @@ function TimeLink({ time, onJump }: { time: number; onJump: (t: number) => void 
       type="button"
       onClick={() => onJump(time)}
       title="Jump to this moment in the transcript"
-      className="rounded px-1 text-xs font-medium tabular-nums text-violet-600 hover:bg-violet-50 hover:underline dark:text-violet-300 dark:hover:bg-violet-950"
+      className="rounded px-1 text-xs font-medium tabular-nums text-blue-600 hover:bg-blue-50 hover:underline dark:text-blue-300 dark:hover:bg-blue-950"
     >
       @ {formatTimestamp(time)}
     </button>

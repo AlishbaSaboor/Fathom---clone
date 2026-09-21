@@ -45,7 +45,7 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
         // Only link ids we know: the model must not be able to send the user somewhere invented.
         const href = hrefFor(cite[1]);
         return href ? (
-          <Link key={i} href={href} className="font-medium text-violet-700 underline decoration-dotted hover:bg-violet-100 dark:text-violet-300 dark:hover:bg-violet-950">
+          <Link key={i} href={href} className="font-medium text-blue-700 underline decoration-dotted hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-950">
             {cite[2]}
           </Link>
         ) : (
@@ -229,7 +229,7 @@ export function AskAllPanel({
     <aside aria-label="Ask Fathom" data-ask-panel={state === "open" ? "open" : undefined} className={`min-w-0 flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}>
       <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">
-          <SparkleIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+          <SparkleIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           Ask Fathom
         </h2>
         {/* One button per breakpoint: on desktop hiding is remembered, on mobile it just closes the overlay. */}
@@ -253,7 +253,7 @@ export function AskAllPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <p className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-xs leading-relaxed text-violet-900 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200">
+        <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
           Ask across all {callCount} of your calls. Answers come from call summaries, not full transcripts, so they can
           miss detail. Open a call to ask about its transcript.
         </p>
@@ -261,7 +261,7 @@ export function AskAllPanel({
         <div className="mt-4 space-y-3" aria-live="polite">
           {messages.map((m, i) =>
             m.role === "user" ? (
-              <p key={i} className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-violet-600 px-3 py-2 text-sm text-white">
+              <p key={i} className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-blue-600 px-3 py-2 text-sm text-white">
                 {m.text}
               </p>
             ) : m.error ? (
@@ -282,7 +282,7 @@ export function AskAllPanel({
               </div>
             ) : (
               <div key={i} className="flex gap-2">
-                <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                   <SparkleIcon className="h-3.5 w-3.5" />
                 </span>
                 <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
@@ -345,7 +345,7 @@ export function AskAllPanel({
       </div>
 
       <form
-        className="m-3 rounded-lg border border-zinc-300 bg-white focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900"
+        className="m-3 rounded-lg border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900"
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
@@ -373,7 +373,7 @@ export function AskAllPanel({
             type="submit"
             disabled={pending || !input.trim()}
             aria-label="Send question"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ArrowUpIcon className="h-4 w-4" />
           </button>

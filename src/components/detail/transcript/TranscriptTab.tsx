@@ -131,7 +131,7 @@ export function TranscriptTab({
             }}
             placeholder="Search transcript"
             aria-label="Search transcript"
-            className="w-full rounded-full border border-zinc-300 bg-white py-1.5 pl-9 pr-8 text-sm outline-none placeholder:text-zinc-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
+            className="w-full rounded-full border border-zinc-300 bg-white py-1.5 pl-9 pr-8 text-sm outline-none placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
@@ -184,7 +184,7 @@ export function TranscriptTab({
           return (
             <li key={seg.id} id={`seg-${seg.id}`} className="scroll-mt-24 rounded-lg">
               {m?.highlights.map((h) => (
-                <div key={h.id} className="mb-1.5 flex items-start gap-2 text-xs text-violet-700 dark:text-violet-300">
+                <div key={h.id} className="mb-1.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
                   <DiamondIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <p>
                     <span className="font-bold uppercase tracking-wide">Highlight</span>
@@ -214,7 +214,7 @@ export function TranscriptTab({
                     type="button"
                     onClick={() => onSeek(seg.start)}
                     title="Play from here"
-                    className="w-11 shrink-0 self-start rounded pt-2.5 text-left text-xs tabular-nums text-violet-600 hover:underline dark:text-violet-300"
+                    className="w-11 shrink-0 self-start rounded pt-2.5 text-left text-xs tabular-nums text-blue-600 hover:underline dark:text-blue-300"
                   >
                     {formatTimestamp(seg.start)}
                   </button>
@@ -226,9 +226,9 @@ export function TranscriptTab({
                 <div
                   className={`min-w-0 flex-1 rounded-lg px-3 py-2 ${
                     highlighted
-                      ? "border-l-4 border-violet-500 bg-violet-50 dark:bg-violet-950/50"
+                      ? "border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/50"
                       : "bg-zinc-100 dark:bg-zinc-900"
-                  } ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-violet-400" : ""}`}
+                  } ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-blue-400" : ""}`}
                 >
                   <p className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: speaker?.avatarColor }}>
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: speaker?.avatarColor }} aria-hidden />

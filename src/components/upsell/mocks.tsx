@@ -19,7 +19,7 @@ function Shell({ tabs, active, children }: { tabs: string[]; active: string; chi
     >
       <div className="mb-3 flex gap-3 border-b border-zinc-800 pb-2 text-[9px]">
         {tabs.map((t) => (
-          <span key={t} className={t === active ? "font-semibold text-violet-300" : "text-zinc-500"}>
+          <span key={t} className={t === active ? "font-semibold text-blue-300" : "text-zinc-500"}>
             {t}
           </span>
         ))}
@@ -128,7 +128,7 @@ export function AlertsMock() {
             <p className="truncate text-[10px] font-medium text-zinc-100">{a.rule}</p>
             <p className="text-[8px] text-zinc-500">{a.hits}</p>
           </div>
-          <span className={`h-3.5 w-7 rounded-full p-0.5 ${a.on ? "bg-violet-500" : "bg-zinc-700"}`}>
+          <span className={`h-3.5 w-7 rounded-full p-0.5 ${a.on ? "bg-blue-500" : "bg-zinc-700"}`}>
             <span className={`block h-2.5 w-2.5 rounded-full bg-white ${a.on ? "ml-3.5" : ""}`} />
           </span>
         </div>
@@ -188,7 +188,7 @@ export function DealsCardMock() {
     >
       <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
         <span className="font-semibold text-zinc-100">Northgate Freight - Pilot</span>
-        <span className="rounded bg-violet-500/20 px-1.5 py-0.5 text-violet-300">$17.2K</span>
+        <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-blue-300">$17.2K</span>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <Thumb i={2} label="Discovery call" />
@@ -197,7 +197,7 @@ export function DealsCardMock() {
       <div className="mt-2 flex gap-3 text-zinc-500">
         <span>Recap</span>
         <span>Key people</span>
-        <span className="text-violet-300">Ask Fathom</span>
+        <span className="text-blue-300">Ask Fathom</span>
       </div>
     </div>
   );
