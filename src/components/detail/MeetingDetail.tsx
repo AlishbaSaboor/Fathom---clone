@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AskFathomButton } from "@/components/AskFathomButton";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { useToast } from "@/components/ui/Toast";
-import { SparkleIcon } from "@/components/ui/icons";
 import { summaryToText, transcriptToText } from "@/lib/export";
 import { segmentIdAt } from "@/lib/transcript";
 import type { Meeting } from "@/types/meeting";
@@ -181,16 +181,7 @@ export function MeetingDetail({
         </section>
       </div>
 
-      {!askOpen && (
-        <button
-          type="button"
-          onClick={() => setAskOpen(true)}
-          aria-label="Open Ask Fathom"
-          className="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#0F6E56] text-white shadow-lg transition hover:opacity-90 dark:bg-[#3EC79A] dark:text-[#101B33]"
-        >
-          <SparkleIcon className="h-6 w-6" />
-        </button>
-      )}
+      {!askOpen && <AskFathomButton onClick={() => setAskOpen(true)} className="flex" />}
 
       <AskFathomPanel
         meeting={meeting}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { PanelRightIcon, SparkleIcon } from "@/components/ui/icons";
+import { AskFathomButton } from "@/components/AskFathomButton";
+import { PanelRightIcon } from "@/components/ui/icons";
 import type { MeetingListItem } from "@/types/meeting";
 import { AskAllPanel } from "./AskAllPanel";
 import { MeetingGrid } from "./MeetingGrid";
@@ -54,18 +55,7 @@ export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">My Calls.</h1>
-        {/* Small screens only: on desktop the panel is already there. */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#2B241C]/20 px-3 py-2 text-sm font-medium hover:bg-[#2B241C]/5 lg:hidden dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/10"
-        >
-          <SparkleIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" />
-          Ask Fathom
-        </button>
-      </div>
+      <h1 className="mb-6 text-2xl font-semibold tracking-tight">My Calls.</h1>
 
       <MeetingGrid meetings={meetings} narrow={!hiddenDesktop} />
 
@@ -80,6 +70,16 @@ export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
             ? "lg:hidden"
             : `lg:fixed lg:inset-auto lg:right-0 ${BELOW_HEADER} lg:bottom-0 lg:z-0 lg:flex lg:w-[340px] lg:rounded-none lg:border-y-0 lg:border-r-0`)
         }
+      />
+
+      {/* Visible whenever no Ask Fathom surface is already showing for the current screen size: below lg
+          that's whenever the mobile overlay isn't open, at lg and up it's whenever the column is collapsed. */}
+      <AskFathomButton
+        onClick={() => {
+          setMobileOpen(true);
+          setHidden(false);
+        }}
+        className={`${mobileOpen ? "hidden" : "flex"} ${hiddenDesktop ? "lg:flex" : "lg:hidden"}`}
       />
 
       {/* Hidden on desktop: a slim rail keeps the way back, as in the real product. */}
