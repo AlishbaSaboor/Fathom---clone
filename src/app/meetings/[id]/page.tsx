@@ -29,7 +29,7 @@ export default async function MeetingPage({ params }: PageProps<"/meetings/[id]"
     <>
       <Link
         href="/calls"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-[#2B241C]/60 hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
       >
         <span aria-hidden>←</span> My Calls
       </Link>

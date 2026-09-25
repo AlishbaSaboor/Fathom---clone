@@ -15,7 +15,7 @@ function Marked({ text, query }: { text: string; query: string }) {
     <>
       {parts.map((part, i) =>
         i % 2 === 1 ? (
-          <mark key={i} className="rounded bg-amber-200 px-0.5 text-zinc-900 dark:bg-amber-400/80">
+          <mark key={i} className="rounded bg-amber-200 px-0.5 text-[#2B241C] dark:bg-amber-400/80">
             {part}
           </mark>
         ) : (
@@ -93,7 +93,7 @@ export function TranscriptTab({
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
-    el.animate([{ backgroundColor: "rgba(139, 92, 246, 0.3)" }, { backgroundColor: "rgba(139, 92, 246, 0)" }], {
+    el.animate([{ backgroundColor: "rgba(15, 110, 86, 0.35)" }, { backgroundColor: "rgba(15, 110, 86, 0)" }], {
       duration: 1800,
     });
   }, [jump, meeting.transcript]);
@@ -102,7 +102,7 @@ export function TranscriptTab({
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
         <div className="relative w-full max-w-xs">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#2B241C]/40 dark:text-[#F2EDDD]/40" />
           <input
             type="search"
             value={query}
@@ -118,7 +118,7 @@ export function TranscriptTab({
             }}
             placeholder="Search transcript"
             aria-label="Search transcript"
-            className="w-full rounded-full border border-zinc-300 bg-white py-1.5 pl-9 pr-8 text-sm outline-none placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
+            className="w-full rounded-full border border-[#2B241C]/20 bg-white py-1.5 pl-9 pr-8 text-sm outline-none placeholder:text-[#2B241C]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:placeholder:text-[#F2EDDD]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/25 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
             <button
@@ -128,7 +128,7 @@ export function TranscriptTab({
                 setQuery("");
                 setCurrent(0);
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#2B241C]/40 hover:text-[#2B241C] dark:text-[#F2EDDD]/40 dark:hover:text-[#F2EDDD]"
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -136,7 +136,7 @@ export function TranscriptTab({
         </div>
 
         {q && (
-          <div className="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400" aria-live="polite">
+          <div className="flex items-center gap-1 text-xs text-[#2B241C]/60 dark:text-[#F2EDDD]/60" aria-live="polite">
             <span className="tabular-nums">
               {matchIds.length ? `${Math.min(current, matchIds.length - 1) + 1} of ${matchIds.length}` : "No results"}
             </span>
@@ -145,7 +145,7 @@ export function TranscriptTab({
               aria-label="Previous result"
               disabled={!matchIds.length}
               onClick={() => step(-1)}
-              className="rounded p-1 hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-800"
+              className="rounded p-1 hover:bg-[#2B241C]/5 disabled:opacity-40 dark:hover:bg-[#F2EDDD]/10"
             >
               <ChevronDownIcon className="h-4 w-4 rotate-180" />
             </button>
@@ -154,7 +154,7 @@ export function TranscriptTab({
               aria-label="Next result"
               disabled={!matchIds.length}
               onClick={() => step(1)}
-              className="rounded p-1 hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-800"
+              className="rounded p-1 hover:bg-[#2B241C]/5 disabled:opacity-40 dark:hover:bg-[#F2EDDD]/10"
             >
               <ChevronDownIcon className="h-4 w-4" />
             </button>
@@ -169,12 +169,12 @@ export function TranscriptTab({
           return (
             <li key={seg.id} id={`seg-${seg.id}`} className="scroll-mt-24 rounded-lg">
               {actionsBySegment.get(seg.id)?.map((a) => (
-                <div key={a.id} className="mb-1.5 flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                <div key={a.id} className="mb-1.5 flex items-start gap-2 text-xs text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
                   <ListCheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <p>
                     <span className="font-bold uppercase tracking-wide">Action item</span>
-                    <span className="mx-1.5 text-zinc-400">···</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">{a.text}</span>
+                    <span className="mx-1.5 text-[#2B241C]/40 dark:text-[#F2EDDD]/40">···</span>
+                    <span className="font-semibold text-[#2B241C] dark:text-[#F2EDDD]">{a.text}</span>
                   </p>
                 </div>
               ))}
@@ -185,17 +185,17 @@ export function TranscriptTab({
                     type="button"
                     onClick={() => onSeek(seg.start)}
                     title="Play from here"
-                    className="w-11 shrink-0 self-start rounded pt-2.5 text-left text-xs tabular-nums text-blue-600 hover:underline dark:text-blue-300"
+                    className="w-11 shrink-0 self-start rounded pt-2.5 text-left text-xs tabular-nums text-[#0F6E56] hover:underline dark:text-[#3EC79A]"
                   >
                     {formatTimestamp(seg.start)}
                   </button>
                 ) : (
-                  <span className="w-11 shrink-0 pt-2.5 text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+                  <span className="w-11 shrink-0 pt-2.5 text-xs tabular-nums text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
                     {formatTimestamp(seg.start)}
                   </span>
                 )}
                 <div
-                  className={`min-w-0 flex-1 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-900 ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-blue-400" : ""}`}
+                  className={`min-w-0 flex-1 rounded-lg bg-[#2B241C]/5 px-3 py-2 dark:bg-[#F2EDDD]/10 ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-[#0F6E56] dark:ring-[#3EC79A]" : ""}`}
                 >
                   <p className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: speaker?.avatarColor }}>
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: speaker?.avatarColor }} aria-hidden />

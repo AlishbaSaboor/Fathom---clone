@@ -8,7 +8,7 @@ import type { Meeting } from "@/types/meeting";
 import { DestinationIcon } from "./DestinationIcons";
 
 const button =
-  "inline-flex items-center justify-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/60";
+  "inline-flex items-center justify-center gap-1.5 rounded-md border border-[#0F6E56]/25 bg-[#0F6E56]/10 px-3 py-2 text-xs font-semibold text-[#0F6E56] hover:bg-[#0F6E56]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#3EC79A]/30 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A] dark:hover:bg-[#3EC79A]/20 dark:focus-visible:outline-[#3EC79A]";
 
 /**
  * "Copy for…" and "Copy Follow-up Email". Nothing is sent anywhere: each option

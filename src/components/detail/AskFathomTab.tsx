@@ -1,17 +1,18 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
-import { AlertIcon, SparkleIcon } from "@/components/ui/icons";
+import { AlertIcon, ArrowUpIcon, SparkleIcon } from "@/components/ui/icons";
 import { formatTimestamp } from "@/lib/format";
 import { MAX_QUESTION_CHARS } from "@/lib/recordings/limits";
 import { parseTimestamp } from "@/lib/recordings/normalize";
 import type { ApiErrorBody, AskRequest, AskResponse } from "@/lib/recordings/types";
 import type { Meeting } from "@/types/meeting";
 
+/** Chip label plus the real question it sends; the chip stays terse, the question stays clear to Gemini. */
 const SUGGESTIONS = [
-  "What were the key decisions?",
-  "Who owns which action item?",
-  "Summarize this call in three sentences",
+  { label: "Decisions", question: "What were the key decisions?" },
+  { label: "Action items", question: "Who owns which action item?" },
+  { label: "Summary", question: "Summarize this call in three sentences." },
 ];
 
 interface Message {
@@ -37,7 +38,7 @@ function AnswerText({ text, onJump }: { text: string; onJump: (t: number) => voi
               type="button"
               onClick={() => onJump(seconds)}
               title="Jump to this moment in the transcript"
-              className="rounded px-0.5 font-medium tabular-nums text-blue-700 underline decoration-dotted hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-950"
+              className="rounded px-0.5 font-medium tabular-nums text-[#0F6E56] underline decoration-dotted hover:bg-[#0F6E56]/10 dark:text-[#3EC79A] dark:hover:bg-[#3EC79A]/15"
             >
               {formatTimestamp(seconds)}
             </button>
@@ -65,7 +66,7 @@ function AnswerText({ text, onJump }: { text: string; onJump: (t: number) => voi
     <div className="space-y-2">
       {blocks.map((b, i) =>
         b.bullets ? (
-          <ul key={i} className="list-disc space-y-1 pl-5 marker:text-zinc-400">
+          <ul key={i} className="list-disc space-y-1 pl-5 marker:text-[#2B241C]/30 dark:marker:text-[#F2EDDD]/30">
             {b.lines.map((l, j) => (
               <li key={j}>{inline(l)}</li>
             ))}
@@ -83,6 +84,10 @@ function AnswerText({ text, onJump }: { text: string; onJump: (t: number) => voi
  * transcript. Only the call's share token and the question are sent: the
  * server reads the transcript from the database. The last few turns are sent
  * too so follow-ups make sense.
+ *
+ * Renders as two siblings (a scrollable message area, then the input form) so
+ * the wrapping panel (AskFathomPanel) can pin the form to the bottom and let
+ * only the conversation scroll.
  */
 export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t: number) => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,7 +102,7 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
     bottom.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [messages, pending]);
 
-  // Cancel an in-flight question if the tab goes away.
+  // Cancel an in-flight question if the panel closes.
   useEffect(() => () => abort.current?.abort(), []);
 
   // After a while, say it's still working rather than looking frozen.
@@ -180,80 +185,97 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
   const empty = messages.length === 0;
 
   return (
-    <div className="flex min-h-80 min-w-0 flex-col">
-      {empty && (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-          <SparkleIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>
-            Ask anything about this call. Answers are written by Gemini from the call&rsquo;s transcript, so they can
-            occasionally be wrong. Check the timestamps it cites.
-          </p>
-        </div>
-      )}
-
-      <div className="flex-1 space-y-3" aria-live="polite">
-        {messages.map((m, i) =>
-          m.role === "user" ? (
-            <p key={i} className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-blue-600 px-3 py-2 text-sm text-white">
-              {m.text}
+    <>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        {empty && (
+          <div className="mb-4 flex items-start gap-3 rounded-lg border border-[#0F6E56]/20 bg-[#0F6E56]/10 p-3 text-sm text-[#0F6E56] dark:border-[#3EC79A]/30 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A]">
+            <SparkleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Hi! I&rsquo;m Ask Fathom, scoped to this call. Ask about any topic, decision or action item discussed
+              &mdash; I can be wrong sometimes, so double-check any timestamp I cite.
             </p>
-          ) : m.error ? (
-            <div
-              key={i}
-              role="alert"
-              className="flex max-w-[92%] items-start gap-2 break-words [overflow-wrap:anywhere] rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-100"
-            >
-              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
-              <div>
-                <p>{m.text}</p>
-                {i === messages.length - 1 && !pending && (
-                  <button type="button" onClick={retry} className="mt-1 text-xs font-semibold underline">
-                    Try again
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div key={i} className="max-w-[92%] break-words [overflow-wrap:anywhere] rounded-lg bg-zinc-100 px-3 py-2 text-sm leading-relaxed dark:bg-zinc-900">
-              <AnswerText text={m.text} onJump={onJump} />
-            </div>
-          ),
-        )}
-
-        {pending && (
-          <div className="flex w-fit items-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400" role="status">
-            <span className="flex gap-1" aria-hidden>
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400" />
-            </span>
-            {slow ? "Still thinking. Gemini is busy right now…" : "Thinking…"}
           </div>
         )}
-        <div ref={bottom} />
-      </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {SUGGESTIONS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            disabled={pending}
-            onClick={() => send(s)}
-            className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            {s}
-          </button>
-        ))}
-        {!empty && (
-          <button type="button" onClick={clear} className="ml-auto text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100">
-            Clear chat
-          </button>
-        )}
+        <div className="space-y-3" aria-live="polite">
+          {messages.map((m, i) =>
+            m.role === "user" ? (
+              <p
+                key={i}
+                className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-[#0F6E56] px-3 py-2 text-sm text-white dark:bg-[#3EC79A] dark:text-[#101B33]"
+              >
+                {m.text}
+              </p>
+            ) : m.error ? (
+              <div
+                key={i}
+                role="alert"
+                className="flex max-w-[92%] items-start gap-2 break-words [overflow-wrap:anywhere] rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-100"
+              >
+                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p>{m.text}</p>
+                  {i === messages.length - 1 && !pending && (
+                    <button type="button" onClick={retry} className="mt-1 text-xs font-semibold underline">
+                      Try again
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                key={i}
+                className="max-w-[92%] break-words [overflow-wrap:anywhere] rounded-lg bg-[#2B241C]/5 px-3 py-2 text-sm leading-relaxed dark:bg-[#F2EDDD]/10"
+              >
+                <AnswerText text={m.text} onJump={onJump} />
+              </div>
+            ),
+          )}
+
+          {pending && (
+            <div
+              className="flex w-fit items-center gap-2 rounded-lg bg-[#2B241C]/5 px-3 py-2 text-sm text-[#2B241C]/70 dark:bg-[#F2EDDD]/10 dark:text-[#F2EDDD]/60"
+              role="status"
+            >
+              <span className="flex gap-1" aria-hidden>
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.3s] dark:bg-[#F2EDDD]/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.15s] dark:bg-[#F2EDDD]/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 dark:bg-[#F2EDDD]/40" />
+              </span>
+              {slow ? "Still thinking. Gemini is busy right now…" : "Thinking…"}
+            </div>
+          )}
+
+          {!pending && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => send(s.question)}
+                  className="rounded-full border border-[#2B241C]/20 px-3 py-1.5 text-xs hover:bg-[#2B241C]/5 disabled:opacity-50 dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/10"
+                >
+                  {s.label}
+                </button>
+              ))}
+              {!empty && (
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="ml-auto text-xs font-medium text-[#2B241C]/60 underline hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
+                >
+                  Clear chat
+                </button>
+              )}
+            </div>
+          )}
+          <div ref={bottom} />
+        </div>
       </div>
 
       <form
-        className="mt-3 flex items-center gap-2"
+        className="m-3 flex items-center gap-2 rounded-lg border border-[#2B241C]/20 bg-white px-2 py-1.5 focus-within:border-[#0F6E56] focus-within:ring-2 focus-within:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:focus-within:border-[#3EC79A] dark:focus-within:ring-[#3EC79A]/25"
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
@@ -264,17 +286,18 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
           onChange={(e) => setInput(e.target.value)}
           maxLength={MAX_QUESTION_CHARS}
           aria-label="Ask a question about this call"
-          placeholder="Ask anything about this call…"
-          className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900"
+          placeholder="Ask about this meeting…"
+          className="min-w-0 flex-1 bg-transparent px-1 py-1.5 text-sm outline-none placeholder:text-[#2B241C]/40 dark:placeholder:text-[#F2EDDD]/40"
         />
         <button
           type="submit"
           disabled={pending || !input.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Send question"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0F6E56] text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#3EC79A] dark:text-[#101B33]"
         >
-          Ask
+          <ArrowUpIcon className="h-4 w-4" />
         </button>
       </form>
-    </div>
+    </>
   );
 }

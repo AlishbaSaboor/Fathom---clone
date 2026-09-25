@@ -2,37 +2,40 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { transcriptToText } from "@/lib/export";
+import { useToast } from "@/components/ui/Toast";
+import { SparkleIcon } from "@/components/ui/icons";
+import { summaryToText, transcriptToText } from "@/lib/export";
 import { segmentIdAt } from "@/lib/transcript";
 import type { Meeting } from "@/types/meeting";
-import { AskFathomTab } from "./AskFathomTab";
+import { ActionItemActions } from "./ActionItemActions";
+import { ActionItemList } from "./ActionItemList";
+import { AskFathomPanel } from "./AskFathomPanel";
+import { JumpNav } from "./JumpNav";
 import { MediaPlayer, type PlayerHandle } from "./MediaPlayer";
-import { MeetingSidebar } from "./MeetingSidebar";
-import { SummaryTab } from "./summary/SummaryTab";
+import { MeetingInfoHeader } from "./MeetingInfoHeader";
+import { SectionRenderer } from "./summary/SectionRenderer";
 import { TranscriptTab } from "./transcript/TranscriptTab";
 
-export type TabId = "summary" | "transcript" | "ask";
 export interface JumpRequest {
   time: number;
   /** Changes on every request so jumping to the same time twice still scrolls. */
   nonce: number;
 }
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "summary", label: "Summary" },
-  { id: "transcript", label: "Transcript" },
-  { id: "ask", label: "Ask Fathom" },
-];
-const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
+// The Ask Fathom panel is 380px wide (lg:w-[380px] below); the content reserves
+// 404px (380 + a 24px gap) so the panel never sits flush against it. Tailwind's
+// class scanner needs these as literal strings, not a computed one, so the two
+// numbers must be kept in sync by hand if the panel's width ever changes.
 
 /**
- * The meeting detail layout: the recording and tabs on the left, action items
- * in a right sidebar. Shared by the owner's page and the public share page;
- * `readOnly` removes every edit control for the latter. Both play the real
- * recording from its stored URL.
+ * The meeting detail page: video, then title/meta/actions, then Summary,
+ * Transcript and Action items as one continuous scroll (jump-to pills, not
+ * tabs). Shared by the owner's page and the public share page; `readOnly`
+ * removes every edit control for the latter. Both play the real recording
+ * from its stored URL, and both get the floating Ask Fathom chat.
  *
- * The active tab is client state. Action item
- * checkboxes are saved through `onToggleAction` (the owner's page provides it).
+ * Action item checkboxes are saved through `onToggleAction` (the owner's page
+ * provides it).
  */
 export function MeetingDetail({
   meeting,
@@ -50,34 +53,27 @@ export function MeetingDetail({
   /** Owner only: saves an action item's checkbox. Resolves false if it could not be saved, and the checkbox is put back. */
   onToggleAction?: (id: string, done: boolean) => Promise<boolean>;
 }) {
-  const [tab, setTab] = useState<TabId>("summary");
   const [jump, setJump] = useState<JumpRequest | null>(null);
   const player = useRef<PlayerHandle>(null);
   const [activeSegmentId, setActiveSegmentId] = useState<string | undefined>();
   const [done, setDone] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(meeting.actionItems.map((a) => [a.id, a.done])),
   );
+  const [askOpen, setAskOpen] = useState(false);
+  const { show, toast } = useToast();
 
-  // Deep links like ?tab=transcript. Read after mount rather than during render
-  // so the statically prerendered HTML and first client render always match, and
-  // without useSearchParams, which would force a Suspense boundary.
+  // Closing on Escape matches how a slide-in panel is expected to behave.
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("tab");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time URL sync after hydration
-    if (isTab(requested)) setTab(requested);
-  }, []);
-
-  function changeTab(next: TabId) {
-    setTab(next);
-    const url = new URL(window.location.href);
-    if (next === "summary") url.searchParams.delete("tab");
-    else url.searchParams.set("tab", next);
-    window.history.replaceState(null, "", url);
-  }
+    if (!askOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAskOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [askOpen]);
 
   function jumpTo(time: number) {
     setJump({ time, nonce: Date.now() });
-    changeTab("transcript");
     player.current?.seek(time);
   }
 
@@ -101,107 +97,113 @@ export function MeetingDetail({
     setActiveSegmentId((prev) => (prev === id ? prev : id));
   }
 
-  function onTabKeyDown(e: React.KeyboardEvent) {
-    const i = TABS.findIndex((t) => t.id === tab);
-    let next = i;
-    if (e.key === "ArrowRight") next = (i + 1) % TABS.length;
-    else if (e.key === "ArrowLeft") next = (i - 1 + TABS.length) % TABS.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = TABS.length - 1;
-    else return;
-    e.preventDefault();
-    changeTab(TABS[next].id);
-    document.getElementById(`tab-${TABS[next].id}`)?.focus();
-  }
+  const doneCount = meeting.actionItems.filter((a) => done[a.id]).length;
+  const speakerCount = meeting.attendees.length;
 
   return (
-    <div className="grid gap-6 [grid-template-areas:'video'_'head'_'tabs'_'side'] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'video_side'_'tabs_side']">
-      <div className="[grid-area:video]">
-        {media && (
-          <MediaPlayer
-            ref={player}
-            url={media.url}
-            kind={media.mimeType.startsWith("video/") ? "video" : "audio"}
-            poster={meeting.poster}
-            onTime={onPlaybackTime}
-          />
+    <div className="relative">
+      {/* Pushed left, not covered, while the panel is open — the rest of the page stays reachable. */}
+      <div className={`transition-[padding] duration-200 ${askOpen ? "lg:pr-[404px]" : ""}`}>
+        {media ? (
+          <>
+            <MediaPlayer
+              ref={player}
+              url={media.url}
+              kind={media.mimeType.startsWith("video/") ? "video" : "audio"}
+              poster={meeting.poster}
+              onTime={onPlaybackTime}
+            />
+            <p className="mt-2 text-xs text-[#2B241C]/50 dark:text-[#F2EDDD]/50">
+              {speakerCount} {speakerCount === 1 ? "speaker" : "speakers"} identified
+            </p>
+          </>
+        ) : (
+          <p className="rounded-xl border border-dashed border-[#2B241C]/20 p-10 text-center text-sm text-[#2B241C]/60 dark:border-[#F2EDDD]/20 dark:text-[#F2EDDD]/60">
+            The recording isn&rsquo;t available.
+          </p>
         )}
-      </div>
 
-      <aside className="max-lg:contents lg:self-start lg:[grid-area:side] lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1">
-        <MeetingSidebar
-          meeting={meeting}
-          done={done}
-          onToggle={toggleAction}
-          onJump={jumpTo}
-          readOnly={readOnly}
-          onDelete={onDelete}
-          onDownload={onDownload}
-        />
-      </aside>
+        <div className="mt-6">
+          <MeetingInfoHeader meeting={meeting} readOnly={readOnly} onDelete={onDelete} onDownload={onDownload} />
+        </div>
 
-      <div className="min-w-0 [grid-area:tabs]">
+        <JumpNav />
+
         {meeting.notice && (
           <p
             role="note"
-            className="mb-4 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200"
+            className="mt-6 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200"
           >
             <span aria-hidden>⚠</span>
             <span>{meeting.notice}</span>
           </p>
         )}
-        <div className="mb-5 flex flex-wrap items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
-          <div role="tablist" aria-label="Meeting sections" onKeyDown={onTabKeyDown} className="flex gap-1">
-            {TABS.map((t) => {
-              const selected = tab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  id={`tab-${t.id}`}
-                  role="tab"
-                  type="button"
-                  aria-selected={selected}
-                  aria-controls={`panel-${t.id}`}
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => changeTab(t.id)}
-                  className={`-mb-px whitespace-nowrap border-b-2 px-2.5 py-2.5 text-xs sm:px-3 font-semibold uppercase tracking-wide transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600 ${
-                    selected
-                      ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
-                      : "border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-          {tab === "transcript" && (
-            <CopyButton
-              label="Copy Transcript"
-              shortLabel="Copy"
-              getText={() => transcriptToText(meeting)}
-              className="mb-1.5 shrink-0"
-            />
-          )}
-        </div>
 
-        {/* Panels stay mounted and are only hidden, so the transcript search
-            text and scroll position survive switching tabs. */}
-        <div role="tabpanel" id="panel-summary" aria-labelledby="tab-summary" hidden={tab !== "summary"}>
-          <SummaryTab meeting={meeting} onJump={jumpTo} />
-        </div>
-        <div role="tabpanel" id="panel-transcript" aria-labelledby="tab-transcript" hidden={tab !== "transcript"}>
-          <TranscriptTab
-            meeting={meeting}
-            jump={jump}
-            activeSegmentId={activeSegmentId}
-            onSeek={playFrom}
+        <section id="summary" className="mt-8 scroll-mt-20">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Summary</h2>
+            <CopyButton label="Copy Summary" shortLabel="Copy" getText={() => summaryToText(meeting.summaries.general)} />
+          </div>
+          {meeting.summaries.general.map((section) => (
+            <SectionRenderer key={section.id} section={section} onJump={jumpTo} />
+          ))}
+        </section>
+
+        <section id="transcript" className="mt-10 scroll-mt-20 border-t border-[#2B241C]/10 pt-8 dark:border-[#F2EDDD]/10">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Transcript</h2>
+            <CopyButton label="Copy Transcript" shortLabel="Copy" getText={() => transcriptToText(meeting)} />
+          </div>
+          <TranscriptTab meeting={meeting} jump={jump} activeSegmentId={activeSegmentId} onSeek={playFrom} />
+        </section>
+
+        <section
+          id="action-items"
+          className="mt-10 scroll-mt-20 border-t border-[#2B241C]/10 pb-16 pt-8 dark:border-[#F2EDDD]/10"
+        >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">
+              Action items
+              <span className="ml-2 text-sm font-normal text-[#2B241C]/50 dark:text-[#F2EDDD]/50">
+                {doneCount} of {meeting.actionItems.length} done
+              </span>
+            </h2>
+            {meeting.actionItems.length > 0 && <ActionItemActions meeting={meeting} done={done} onNotify={show} />}
+          </div>
+          <ActionItemList
+            items={meeting.actionItems}
+            attendees={meeting.attendees}
+            done={done}
+            onToggle={toggleAction}
+            onJump={jumpTo}
+            readOnly={readOnly}
           />
-        </div>
-        <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" hidden={tab !== "ask"}>
-          <AskFathomTab meeting={meeting} onJump={jumpTo} />
-        </div>
+        </section>
       </div>
+
+      {!askOpen && (
+        <button
+          type="button"
+          onClick={() => setAskOpen(true)}
+          aria-label="Open Ask Fathom"
+          className="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-[#0F6E56] text-white shadow-lg transition hover:opacity-90 dark:bg-[#3EC79A] dark:text-[#101B33]"
+        >
+          <SparkleIcon className="h-6 w-6" />
+        </button>
+      )}
+
+      <AskFathomPanel
+        meeting={meeting}
+        onJump={jumpTo}
+        onClose={() => setAskOpen(false)}
+        className={
+          "fixed z-30 " +
+          (askOpen
+            ? "inset-4 lg:inset-auto lg:bottom-4 lg:right-4 lg:top-[calc(3.5rem+1rem)] lg:w-[380px]"
+            : "hidden")
+        }
+      />
+      {toast}
     </div>
   );
 }
