@@ -28,7 +28,7 @@ export default async function MeetingPage({ params }: PageProps<"/meetings/[id]"
   return (
     <>
       <Link
-        href="/"
+        href="/calls"
         className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
       >
         <span aria-hidden>←</span> My Calls

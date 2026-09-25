@@ -4,13 +4,15 @@ import { Logo } from "@/components/brand/Logo";
 
 // App shell: header and account menu. The public share route lives in the
 // (share) group and deliberately does not use this layout, so it never renders
-// an account menu.
+// an account menu. The marketing page at "/" has its own header (see
+// components/landing) and isn't part of this group.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/">
+          {/* Inside the app, the logo goes to the app's own home (My Calls), not back out to the marketing page. */}
+          <Link href="/calls">
             <Logo />
           </Link>
           <AccountMenu />

@@ -41,7 +41,7 @@ export function OwnerMeetingView({ meeting }: { meeting: Meeting }) {
     } catch {
       return void window.alert("Couldn't reach the server. Check your connection and try again.");
     }
-    router.replace("/");
+    router.replace("/calls");
     router.refresh();
   }
 
