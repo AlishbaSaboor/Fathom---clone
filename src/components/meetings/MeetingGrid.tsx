@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SearchIcon, UploadIcon, XIcon } from "@/components/ui/icons";
-import { useHydrated, useUploads } from "@/lib/recordings/storage";
-import { toListItem } from "@/lib/recordings/toMeeting";
 import { searchMeetings, type MeetingMatch } from "@/lib/search";
 import type { MeetingListItem } from "@/types/meeting";
 import { MeetingCard } from "./MeetingCard";
@@ -12,19 +10,8 @@ import { MeetingCard } from "./MeetingCard";
 /** `narrow`: a side panel takes the right of the page, so the cards drop from three columns to two. */
 export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingListItem[]; narrow?: boolean }) {
   const [query, setQuery] = useState("");
-  // Recordings the user uploaded live in this browser (localStorage), so they
-  // are merged in here on the client. Empty during server rendering.
-  const uploads = useUploads();
-  const all = useMemo(
-    () => [...meetings, ...uploads.map(toListItem)].sort((a, b) => b.date.localeCompare(a.date)),
-    [meetings, uploads],
-  );
-  const results = useMemo(() => searchMeetings(all, query), [all, query]);
+  const results = useMemo(() => searchMeetings(meetings, query), [meetings, query]);
   const searching = query.trim().length > 0;
-  const hydrated = useHydrated();
-  // Search runs over both groups together; the results are then split back into their sections.
-  const yours = results.filter((m) => m.meeting.source === "upload");
-  const mockups = results.filter((m) => m.meeting.source !== "upload");
 
   return (
     <>
@@ -61,34 +48,25 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
       </div>
 
       <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
-        {searching ? `${results.length} of ${all.length} calls` : `${all.length} calls`}
+        {searching
+          ? `${results.length} of ${meetings.length} calls`
+          : `${meetings.length} ${meetings.length === 1 ? "call" : "calls"}`}
       </p>
 
-      {results.length > 0 ? (
-        <>
-          {/* While searching, a section with no hits is hidden; otherwise "Your Recordings" always shows. */}
-          {(!searching || yours.length > 0) && (
-            <Section title="Your Recordings" count={yours.length}>
-              {yours.length > 0 ? (
-                <CardList matches={yours} narrow={narrow} />
-              ) : (
-                hydrated && (
-                  <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-                    Upload a recording to see it here.{" "}
-                    <Link href="/upload" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
-                      Upload a recording
-                    </Link>
-                  </div>
-                )
-              )}
-            </Section>
-          )}
-          {mockups.length > 0 && (
-            <Section title="Mockup" count={mockups.length}>
-              <CardList matches={mockups} narrow={narrow} />
-            </Section>
-          )}
-        </>
+      {meetings.length === 0 ? (
+        <div className="mt-10 rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
+          <p className="font-medium">No calls yet</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Upload a recording to get a transcript, summary and action items.
+          </p>
+          <Link href="/upload" className="mt-4 inline-block rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+            Upload a recording
+          </Link>
+        </div>
+      ) : results.length > 0 ? (
+        <div className="mt-6">
+          <CardList matches={results} narrow={narrow} />
+        </div>
       ) : (
         <div className="mt-10 rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
           <p className="font-medium">No calls match &ldquo;{query.trim()}&rdquo;</p>
@@ -105,18 +83,6 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
         </div>
       )}
     </>
-  );
-}
-
-function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
-  return (
-    <section className="mt-8 first:mt-4" aria-label={title}>
-      <h2 className="mb-3 flex items-baseline gap-2 text-lg font-semibold tracking-tight">
-        {title}
-        <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">{count}</span>
-      </h2>
-      {children}
-    </section>
   );
 }
 

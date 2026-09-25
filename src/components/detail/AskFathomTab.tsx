@@ -2,7 +2,6 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { AlertIcon, SparkleIcon } from "@/components/ui/icons";
-import { transcriptToText } from "@/lib/export";
 import { formatTimestamp } from "@/lib/format";
 import { MAX_QUESTION_CHARS } from "@/lib/recordings/limits";
 import { parseTimestamp } from "@/lib/recordings/normalize";
@@ -81,9 +80,9 @@ function AnswerText({ text, onJump }: { text: string; onJump: (t: number) => voi
 
 /**
  * Ask Fathom: a chat about one meeting, answered by Gemini from that meeting's
- * transcript. Seeded meetings are looked up by id on the server; an uploaded
- * meeting only exists in this browser, so its transcript is sent with the
- * question. The last few turns are sent too so follow-ups make sense.
+ * transcript. Only the call's share token and the question are sent: the
+ * server reads the transcript from the database. The last few turns are sent
+ * too so follow-ups make sense.
  */
 export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t: number) => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -121,7 +120,7 @@ export function AskFathomTab({ meeting, onJump }: { meeting: Meeting; onJump: (t
     const body: AskRequest = {
       question: q,
       history: history.filter((m) => !m.error).map((m) => ({ role: m.role, text: m.text })),
-      ...(meeting.source === "upload" ? { transcript: transcriptToText(meeting) } : { meetingId: meeting.id }),
+      shareToken: meeting.shareToken,
     };
 
     try {

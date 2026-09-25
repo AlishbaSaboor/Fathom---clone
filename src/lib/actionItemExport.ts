@@ -1,5 +1,4 @@
-import { groupActionItems } from "@/lib/actionItems";
-import { formatDate, formatDuration, formatDueDate, formatDueDateFull } from "@/lib/format";
+import { formatDate, formatDuration } from "@/lib/format";
 import type { ActionItem, Meeting } from "@/types/meeting";
 
 // "Copy for..." formats. No OAuth or API connection to any of these tools (out of
@@ -40,14 +39,10 @@ const assigneeName = ({ meeting }: Ctx, item: ActionItem) =>
 
 const isDone = ({ done }: Ctx, item: ActionItem) => !!done[item.id];
 
-/** "Priya Nair, due Sep 22, 2026, high priority" from whichever parts exist. */
-function detailParts(ctx: Ctx, item: ActionItem, opts: { priority?: boolean } = { priority: true }): string[] {
-  const parts: string[] = [];
+/** The details shown after an item's text: who it is for, when there is a name. */
+function detailParts(ctx: Ctx, item: ActionItem): string[] {
   const who = assigneeName(ctx, item);
-  if (who) parts.push(who);
-  if (item.dueDate) parts.push(`due ${formatDueDateFull(item.dueDate)}`);
-  if (opts.priority && item.priority === "high") parts.push("high priority");
-  return parts;
+  return who ? [who] : [];
 }
 
 const headline = (meeting: Meeting) => `${meeting.title} (${formatDate(meeting.date)})`;
@@ -59,31 +54,22 @@ function noItems(): ExportResult {
 // ---------------------------------------------------------------- Gmail
 
 function emailBodyPlain(ctx: Ctx, items: ActionItem[]): string {
-  const groups = groupActionItems(items);
-  const grouped = groups.length > 1 || groups[0]?.name !== null;
-  let n = 0;
-  const lines: string[] = [];
-  for (const g of groups) {
-    if (grouped && g.name) lines.push("", g.name);
-    for (const item of g.items) {
+  return items
+    .map((item, i) => {
       const detail = detailParts(ctx, item);
-      lines.push(`${++n}. ${item.text}${detail.length ? ` (${detail.join(", ")})` : ""}${isDone(ctx, item) ? " [done]" : ""}`);
-    }
-  }
-  return lines.join("\n").trim();
+      return `${i + 1}. ${item.text}${detail.length ? ` (${detail.join(", ")})` : ""}${isDone(ctx, item) ? " [done]" : ""}`;
+    })
+    .join("\n");
 }
 
 function emailBodyHtml(ctx: Ctx, items: ActionItem[]): string {
-  const groups = groupActionItems(items);
-  const grouped = groups.length > 1 || groups[0]?.name !== null;
   const li = (item: ActionItem) => {
     const detail = detailParts(ctx, item);
     return `<li>${escapeHtml(item.text)}${detail.length ? ` <em>(${escapeHtml(detail.join(", "))})</em>` : ""}${
       isDone(ctx, item) ? " <strong>[done]</strong>" : ""
     }</li>`;
   };
-  if (!grouped) return `<ol>${groups[0].items.map(li).join("")}</ol>`;
-  return groups.map((g) => `<p><strong>${escapeHtml(g.name ?? "Other")}</strong></p><ul>${g.items.map(li).join("")}</ul>`).join("");
+  return `<ol>${items.map(li).join("")}</ol>`;
 }
 
 function gmail(ctx: Ctx): ExportResult {
@@ -137,29 +123,17 @@ export function buildFollowUpEmail(meeting: Meeting, done: Record<string, boolea
 
 /**
  * One task per line, which is how Asana turns pasted text into tasks. Only
- * open items: tasks that are already done should not be recreated. When the
- * call has workstream groups, each group becomes a "Section:" line, which Asana
- * turns into a section header when pasted into a list.
+ * open items: tasks that are already done should not be recreated.
  */
 function asana(ctx: Ctx): ExportResult {
   const open = ctx.meeting.actionItems.filter((i) => !isDone(ctx, i));
   if (!ctx.meeting.actionItems.length) return noItems();
   if (!open.length) return { plain: "", count: 0, emptyReason: "Every action item is already done, so there are no open tasks to copy." };
 
-  const groups = groupActionItems(open);
-  const grouped = groups.length > 1 || groups[0]?.name !== null;
-  const lines: string[] = [];
-  for (const g of groups) {
-    if (grouped && g.name) lines.push(`${g.name}:`);
-    for (const item of g.items) {
-      const bits: string[] = [];
-      const who = assigneeName(ctx, item);
-      if (who) bits.push(`Assignee: ${who}`);
-      if (item.dueDate) bits.push(`Due: ${formatDueDateFull(item.dueDate)}`);
-      if (item.priority === "high") bits.push("Priority: High");
-      lines.push(bits.length ? `${item.text} (${bits.join(", ")})` : item.text);
-    }
-  }
+  const lines = open.map((item) => {
+    const who = assigneeName(ctx, item);
+    return who ? `${item.text} (Assignee: ${who})` : item.text;
+  });
   return { plain: lines.join("\n"), count: open.length };
 }
 
@@ -169,9 +143,8 @@ const labelFor = (name: string) => name.split(/\s+/)[0].toLowerCase().replace(/[
 
 /**
  * Todoist quick-add syntax, one task per line: "@label" for the person (Todoist
- * labels; assigning a person needs a shared project, which text cannot do),
- * "p1" for high priority, and a natural-language date such as "Oct 2". Only
- * open items. There are no section lines: a header line would become a task.
+ * labels; assigning a person needs a shared project, which text cannot do).
+ * Only open items. There are no header lines: they would become tasks.
  */
 function todoist(ctx: Ctx): ExportResult {
   const open = ctx.meeting.actionItems.filter((i) => !isDone(ctx, i));
@@ -182,8 +155,6 @@ function todoist(ctx: Ctx): ExportResult {
     const who = assigneeName(ctx, item);
     const parts = [item.text];
     if (who && labelFor(who)) parts.push(`@${labelFor(who)}`);
-    if (item.priority === "high") parts.push("p1");
-    if (item.dueDate) parts.push(formatDueDate(item.dueDate));
     return parts.join(" ");
   });
   return { plain: lines.join("\n"), count: open.length };
@@ -192,10 +163,10 @@ function todoist(ctx: Ctx): ExportResult {
 // ---------------------------------------------------- Google Docs / Word
 
 /**
- * A readable document section: a title, a one-line summary, then bullets under
- * headings. Both a plain-text version and an HTML version (real headings and
- * bullet lists) are produced, and the browser pastes whichever the target
- * supports, so Docs and Word keep the structure.
+ * A readable document section: a title, a one-line summary, then a bullet list.
+ * Both a plain-text version and an HTML version (a real heading and bullet
+ * list) are produced, and the browser pastes whichever the target supports, so
+ * Docs and Word keep the structure.
  */
 function document_(ctx: Ctx): ExportResult {
   const items = ctx.meeting.actionItems;
@@ -204,28 +175,19 @@ function document_(ctx: Ctx): ExportResult {
   const doneCount = items.filter((i) => isDone(ctx, i)).length;
   const summary = `${formatDate(m.date)} · ${formatDuration(m.durationSec)} · ${items.length} action items (${doneCount} done)`;
 
-  const groups = groupActionItems(items);
-  const grouped = groups.length > 1 || groups[0]?.name !== null;
   const bullet = (item: ActionItem) => {
     const detail = detailParts(ctx, item);
     return `• [${isDone(ctx, item) ? "x" : " "}] ${item.text}${detail.length ? ` — ${detail.join(", ")}` : ""}`;
   };
 
-  const plain: string[] = [`Action items: ${m.title}`, summary, ""];
-  for (const g of groups) {
-    if (grouped && g.name) plain.push(g.name.toUpperCase());
-    plain.push(...g.items.map(bullet), "");
-  }
+  const plain: string[] = [`Action items: ${m.title}`, summary, "", ...items.map(bullet)];
 
   const li = (item: ActionItem) => {
     const detail = detailParts(ctx, item);
     return `<li>${isDone(ctx, item) ? "☑" : "☐"} ${escapeHtml(item.text)}${detail.length ? ` <em>— ${escapeHtml(detail.join(", "))}</em>` : ""}</li>`;
   };
   const html =
-    `<h1>Action items: ${escapeHtml(m.title)}</h1><p>${escapeHtml(summary)}</p>` +
-    groups
-      .map((g) => `${grouped && g.name ? `<h2>${escapeHtml(g.name)}</h2>` : ""}<ul>${g.items.map(li).join("")}</ul>`)
-      .join("");
+    `<h1>Action items: ${escapeHtml(m.title)}</h1><p>${escapeHtml(summary)}</p><ul>${items.map(li).join("")}</ul>`;
 
   return { plain: plain.join("\n").trim(), html, count: items.length };
 }

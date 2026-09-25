@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
-import { AppNav } from "@/components/AppNav";
 import { Logo } from "@/components/brand/Logo";
 
-// App shell for the signed-in experience: header, account menu and the My
-// Calls / Team Calls / Playlists / Alerts / Deals nav row. The public
-// share route lives in the (share) group and deliberately does not use this
-// layout, so it never renders an account menu.
+// App shell: header and account menu. The public share route lives in the
+// (share) group and deliberately does not use this layout, so it never renders
+// an account menu.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
@@ -17,7 +15,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
           <AccountMenu />
         </div>
-        <AppNav />
       </header>
       {/* My Calls has a fixed right-hand Ask Fathom column (or a slim rail when hidden). It says which through a
           data attribute; the page reads it here to reserve room, so the shell stays a server component. The

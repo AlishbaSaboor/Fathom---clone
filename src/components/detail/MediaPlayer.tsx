@@ -8,9 +8,9 @@ export interface PlayerHandle {
 }
 
 /**
- * Real playback for an uploaded recording, unlike the seeded meetings whose
- * playback is intentionally stubbed. Video gets a normal video player; audio
- * gets the same gradient card as the poster with a native audio control bar.
+ * Plays the stored recording straight from its URL, so seeking works and no
+ * login is needed on the share page. Video gets a normal video player; audio
+ * gets a gradient card with a native audio control bar.
  */
 export function MediaPlayer({
   url,

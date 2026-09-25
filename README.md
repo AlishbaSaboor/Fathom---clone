@@ -1,52 +1,63 @@
 # Fathom Clone
 
-A 1-day rebuild of [Fathom](https://fathom.video), an AI meeting notetaker that records calls and turns them into transcripts, summaries, and action items. Built for the 8x Software Engineer assignment.
+A rebuild of [Fathom](https://fathom.video), an AI meeting notetaker that turns recordings into transcripts, summaries and action items. Built for the 8x Software Engineer assignment.
 
 **Live:** https://fathom-clone-nine.vercel.app/
 
-## In scope
+Everything in the app is real, stored data: there are no seeded or hardcoded meetings. A recording you upload is stored in Vercel Blob, analyzed by Gemini, and saved to MongoDB Atlas.
 
-- Meeting list with search, seeded with realistic demo meetings (including an 8-person, hour-long call)
-- Meeting detail page: video, AI summary with switchable templates, transcript with search and highlights, action items
-- **Real upload feature**: upload a recording (up to 200MB / 30 min) and get a genuine transcript, summary, and action items from the Gemini API, with real playback
-- **Share links for uploads**: each processed upload gets a shareable link. The transcript/summary/action items are saved server-side (Vercel KV); the recording itself stays in your browser, so the shared page has no player, transcript and summary only
-- **Real Ask Fathom chatbot**, per-meeting and account-wide, answers from actual call data with clickable citations
-- "Copy for" Asana, Gmail, Google Docs, Todoist, Microsoft Word: formats action items for each
-- Public share links for the demo meetings
+## What it does
+
+- **Upload a recording** (audio or video, up to 200 MB and 30 minutes). It is stored, transcribed and summarized, and shows up in My Calls.
+- **My Calls**: your recordings, with search by title or attendee, and a delete action that removes the file, the data and the share link.
+- **Call page**: real playback of the stored recording (video or audio, with seeking), an AI summary, a searchable transcript that plays from any timestamp, and action items whose checkboxes are saved.
+- **Share links**: every recording gets a link that works for anyone, logged in or not, and shows the full result with real video/audio playback. It stops working when you delete the recording.
+- **Ask Fathom**, per call and across all your calls, answered by Gemini from the real transcript or summaries, with clickable citations.
+- **Copy for** Asana, Gmail, Google Docs, Todoist and Microsoft Word: formats action items for each.
+
+## How it works
+
+Upload flow (one browser upload, then everything else happens on the server):
+
+1. **Register**: the server checks the file's type, size, length and the storage limits, creates an `uploading` meeting in MongoDB and picks the file's Blob pathname.
+2. **Upload**: the browser sends the file straight to Vercel Blob with a short-lived token that is only valid for that pathname, type and size (a function request can't carry more than 4.5 MB).
+3. **Import**: the server confirms the file is in Blob, then streams it from Blob to the Gemini Files API.
+4. **Prepare**: the browser waits for Gemini to finish preparing the file.
+5. **Process**: one Gemini call returns the transcript, title, speakers, summary and action items. The server saves them to MongoDB and the meeting becomes `ready`.
+
+Retrying after a failure never repeats finished steps: a file already in Blob is not uploaded again, and one Gemini already has is not copied again.
+
+Data (MongoDB Atlas): `meetings` (attendees, summary, share token, and the Blob URL of the recording, never the file itself), `transcripts` (one per meeting, kept apart because it is the largest part) and `actionItems` (one per item, so a checkbox saves on its own). Recordings live only in Vercel Blob.
+
+Limits, chosen from measurements of Gemini's behavior: 200 MB and 30 minutes per recording (longer audio gets an incomplete transcript in one call, so it is refused up front). Blob's free tier holds 1 GB and locks the store for 30 days if exceeded, so the app stops accepting uploads at 800 MB in total and 400 MB per visitor, and removes uploads that never finished after 24 hours.
 
 ## Out of scope
 
-- **Live meeting capture** (a bot joining Zoom/Meet/Teams): explicitly allowed to stub per the assignment brief
-- **A full database**: only uploaded results are stored server-side (see above); everything else lives in the browser, so it isn't synced across devices
-- **Authentication**: no login, the app is fully open by design
-- **A browser extension**: the product being rebuilt is the web app
-- **Team/paid features** (Team Calls, Playlists, Alerts, Deals): shown as real nav tabs matching Fathom's UI, each is an honest "not part of this build" stub
+- **Live meeting capture** (a bot joining Zoom/Meet/Teams): explicitly allowed to be stubbed per the assignment brief.
+- **Accounts and login.** Each browser gets a random anonymous owner id in an httpOnly cookie, and My Calls shows only that browser's recordings. It isn't a login: clearing cookies means losing the way back to your list, but share links keep working. The data model carries an owner id, so real accounts would replace only where that value comes from.
+- **A browser extension**: the product being rebuilt is the web app.
+- **Team and paid features** (Team Calls, Playlists, Alerts, Deals).
 
 ## Stack
 
-Next.js (App Router), TypeScript, Tailwind CSS, Gemini API, Vercel KV, deployed on Vercel.
+Next.js (App Router), TypeScript, Tailwind CSS, Gemini API, MongoDB Atlas, Vercel Blob, deployed on Vercel.
 
 ## Setup
 
 ```bash
 npm install
-```
-
-Create `.env.local`:
-
-```bash
-GEMINI_API_KEY=your-gemini-api-key-here
-```
-
-Optional, for upload share links, connect a Vercel KV (Upstash Redis) store and add:
-
-```bash
-KV_REST_API_URL=...
-KV_REST_API_TOKEN=...
-```
-
-Then run:
-
-```bash
+cp .env.example .env.local   # then fill in the values below
 npm run dev
 ```
+
+`.env.local` is git-ignored: never commit real values, and never paste them into a chat or prompt.
+
+| Variable | Where it comes from |
+| --- | --- |
+| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) |
+| `MONGODB_URI` | MongoDB Atlas (free M0 cluster). Create a database user with `readWrite` on a single database (not an admin user), allow network access from `0.0.0.0/0` (Vercel has no fixed IPs), and use the `mongodb+srv://` connection string with the database name in it. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel: Storage, create a **Public** Blob store, connect it to the project, then `vercel env pull .env.local`. |
+
+Optional: `MONGODB_DB` (if the connection string names no database) and `GEMINI_MODEL` (one model id or a comma-separated fallback list). The same variables go in the Vercel project's environment variables for the deployed app.
+
+Useful checks: `npm run typecheck` and `npm run lint`.

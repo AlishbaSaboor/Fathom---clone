@@ -1,7 +1,5 @@
 import { Avatar } from "@/components/ui/Avatar";
-import { ChevronDownIcon } from "@/components/ui/icons";
-import { groupActionItems } from "@/lib/actionItems";
-import { formatDueDate, formatTimestamp } from "@/lib/format";
+import { formatTimestamp } from "@/lib/format";
 import type { ActionItem, Attendee } from "@/types/meeting";
 
 interface Props {
@@ -58,59 +56,21 @@ function Row({
           >
             @ {formatTimestamp(item.timestamp)}
           </button>
-          {item.dueDate && <span>Due {formatDueDate(item.dueDate)}</span>}
-          {item.priority === "high" && (
-            <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-              High
-            </span>
-          )}
         </div>
       </div>
     </li>
   );
 }
 
-/**
- * Flat list for the small calls, or collapsible workstream groups when items
- * carry a `group` (the 8-person call has 22 items across 8 workstreams, which
- * is unreadable as one long list).
- */
 export function ActionItemList(props: Props) {
-  const groups = groupActionItems(props.items);
-
-  if (groups.length === 1 && groups[0].name === null) {
-    return (
-      <ul className="space-y-3">
-        {props.items.map((item) => (
-          <Row key={item.id} item={item} {...props} />
-        ))}
-      </ul>
-    );
+  if (props.items.length === 0) {
+    return <p className="text-sm text-zinc-500 dark:text-zinc-400">No action items were found in this call.</p>;
   }
-
   return (
-    <div className="space-y-2">
-      {groups.map((g) => {
-        const doneInGroup = g.items.filter((a) => props.done[a.id]).length;
-        return (
-          <details key={g.name} open className="group rounded-lg border border-zinc-200 dark:border-zinc-800">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
-              <span>{g.name}</span>
-              <span className="flex items-center gap-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
-                <span className="tabular-nums">
-                  {doneInGroup}/{g.items.length}
-                </span>
-                <ChevronDownIcon className="h-4 w-4 transition group-open:rotate-180" />
-              </span>
-            </summary>
-            <ul className="space-y-3 border-t border-zinc-200 px-3 py-3 dark:border-zinc-800">
-              {g.items.map((item) => (
-                <Row key={item.id} item={item} {...props} />
-              ))}
-            </ul>
-          </details>
-        );
-      })}
-    </div>
+    <ul className="space-y-3">
+      {props.items.map((item) => (
+        <Row key={item.id} item={item} {...props} />
+      ))}
+    </ul>
   );
 }

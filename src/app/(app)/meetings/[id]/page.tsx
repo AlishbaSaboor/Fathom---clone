@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MeetingDetail } from "@/components/detail/MeetingDetail";
-import { getAllMeetingIds, getMeetingById } from "@/lib/meetings";
+import { cache } from "react";
+import { OwnerMeetingView } from "@/components/detail/OwnerMeetingView";
+import { getMeetingForOwner } from "@/lib/meetings";
+import { getOwnerId } from "@/lib/server/owner";
 
-// Only the seeded meeting ids exist; anything else is a 404.
-export const dynamicParams = false;
+// The owner's view of one of their recordings. Rendered on demand: which
+// meetings exist, and whose they are, is only known from the database and the
+// visitor's owner cookie. Someone else's id, or an unknown one, is a 404.
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return (await getAllMeetingIds()).map((id) => ({ id }));
-}
+// One database read per request, shared by generateMetadata and the page.
+const getMeeting = cache(async (id: string) => getMeetingForOwner(id, await getOwnerId()));
 
 export async function generateMetadata({ params }: PageProps<"/meetings/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const meeting = await getMeetingById(id);
+  const meeting = await getMeeting(id);
   return { title: meeting ? `${meeting.title} | Fathom Clone` : "Call not found" };
 }
 
 export default async function MeetingPage({ params }: PageProps<"/meetings/[id]">) {
   const { id } = await params;
-  const meeting = await getMeetingById(id);
+  const meeting = await getMeeting(id);
   if (!meeting) notFound();
 
   return (
@@ -30,7 +33,7 @@ export default async function MeetingPage({ params }: PageProps<"/meetings/[id]"
       >
         <span aria-hidden>←</span> My Calls
       </Link>
-      <MeetingDetail meeting={meeting} />
+      <OwnerMeetingView meeting={meeting} />
     </>
   );
 }

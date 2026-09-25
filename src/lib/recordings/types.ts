@@ -12,8 +12,6 @@ export interface ProcessedRecording {
   actionItems: { text: string; assigneeId: string | null; start: number }[];
   /** Which Gemini model produced it. */
   model: string;
-  /** Set by the process route when a shareable copy was stored (/share/upload/<token>). Absent when sharing is unavailable. */
-  shareToken?: string;
 }
 
 /** Error body shape shared by all API routes. */
@@ -21,20 +19,29 @@ export interface ApiErrorBody {
   error: { kind: string; message: string; retryable?: boolean; retryAfterSec?: number };
 }
 
-export interface StartUploadRequest {
+/** Step 1: registers a recording so the browser may upload it. The server decides where it goes and what it may be. */
+export interface CreateUploadRequest {
   fileName: string;
-  mimeType: string;
+  /** The type the browser reports (only used to tell audio-only WebM from video). */
+  browserType: string;
   sizeBytes: number;
+  durationSec: number;
 }
-export interface StartUploadResponse {
-  /** Pre-authorized Gemini upload URL. Contains no API key. */
-  uploadUrl: string;
-  /**
-   * Random token stored in the Gemini file's display name. Lets the server find
-   * the file afterwards even when the browser cannot read Gemini's upload
-   * response (see uploadToGemini in client.ts).
-   */
-  token: string;
+export interface CreateUploadResponse {
+  meetingId: string;
+  /** Where in Blob storage the file must be uploaded. */
+  pathname: string;
+  /** The content type the upload must be sent with. */
+  contentType: string;
+}
+
+/** Step 2 (server to server): copy the stored recording to Gemini. */
+export interface ImportRequest {
+  meetingId: string;
+}
+export interface ImportResponse {
+  /** Gemini file resource name, e.g. "files/abc123". */
+  fileName: string;
 }
 
 export interface FileStatusResponse {
@@ -43,16 +50,17 @@ export interface FileStatusResponse {
 }
 
 export interface ProcessRequest {
-  /** Gemini file resource name, e.g. "files/abc123". */
-  fileName: string;
-  durationSec: number;
+  meetingId: string;
+}
+/** The analysis is saved by the server; the browser just gets told where to find it. */
+export interface ProcessResponse {
+  meetingId: string;
+  shareToken: string;
 }
 
 export interface AskRequest {
-  /** Seeded meeting id: the server looks up the transcript itself. */
-  meetingId?: string;
-  /** Transcript text for an uploaded meeting, which only exists in the browser. */
-  transcript?: string;
+  /** The call's share token: the server looks up the transcript itself. */
+  shareToken: string;
   question: string;
   history?: { role: "user" | "assistant"; text: string }[];
 }
@@ -66,8 +74,6 @@ export interface AskAllRequest {
   history?: { role: "user" | "assistant"; text: string }[];
   /** The visitor's local date (YYYY-MM-DD), so "looming deadlines" is judged against today. */
   today?: string;
-  /** Digests of the visitor's uploaded calls. They only exist in the browser, so they travel with the question. */
-  uploads?: { id: string; title: string; date: string; digest: string }[];
 }
 export interface AskAllResponse {
   answer: string;

@@ -1,5 +1,5 @@
 import { formatTimestamp } from "@/lib/format";
-import type { Meeting, MeetingListItem, SummarySection } from "@/types/meeting";
+import type { Meeting, SummarySection } from "@/types/meeting";
 import { transcriptCoverage } from "./normalize";
 import type { ProcessedRecording } from "./types";
 
@@ -14,28 +14,32 @@ const POSTERS = [
 
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 
+/** The gradient a meeting's card and audio player are drawn with, picked from its id so it never changes. */
+export const posterFor = (id: string) => POSTERS[hash(id) % POSTERS.length];
+
 export interface UploadMeta {
   id: string;
+  shareToken: string;
   createdAt: string; // ISO
   durationSec: number;
   fileName: string;
   mimeType: string;
   sizeBytes: number;
+  /** Where the recording is stored (Vercel Blob). */
+  mediaUrl: string;
 }
 
 /**
- * Turns Gemini's result for an uploaded recording into the same Meeting shape
- * the seeded meetings use, so it opens in the existing detail page.
+ * Turns Gemini's result for an uploaded recording into the Meeting shape the
+ * detail page renders. Runs on the server, once, when the analysis is saved.
  *
- * Differences from seeded meetings: only the General summary exists (one Gemini
- * call), there are no highlights (those are user-made), speakers are
- * "Speaker N" unless a name was said aloud, and there is no share link.
+ * Only the General summary exists (one Gemini call), and speakers are
+ * "Speaker N" unless a name was said aloud.
  */
 export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
   const attendees = p.speakers.map((s, i) => ({
     id: s.id,
     name: s.name,
-    email: "",
     avatarColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
   }));
 
@@ -67,12 +71,11 @@ export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
 
   return {
     id: meta.id,
-    shareToken: p.shareToken ?? "", // "" when no shareable copy was stored (sharing unavailable, or saved before sharing existed)
+    shareToken: meta.shareToken,
     title: p.title,
     date: meta.createdAt,
     durationSec: meta.durationSec,
-    platform: "upload",
-    poster: POSTERS[hash(meta.id) % POSTERS.length],
+    poster: posterFor(meta.id),
     attendees,
     transcript: p.transcript.map((t, i) => ({
       id: `t${String(i + 1).padStart(3, "0")}`,
@@ -88,38 +91,21 @@ export function buildMeeting(p: ProcessedRecording, meta: UploadMeta): Meeting {
       timestamp: a.start,
       done: false,
     })),
-    highlights: [],
-    source: "upload",
     notice: coverageNotice(
       p.transcript.map((t) => ({ start: t.start, text: t.text })),
       meta.durationSec,
     ),
-    media: { fileName: meta.fileName, mimeType: meta.mimeType, sizeBytes: meta.sizeBytes },
+    media: { url: meta.mediaUrl, fileName: meta.fileName, mimeType: meta.mimeType, sizeBytes: meta.sizeBytes },
   };
 }
 
 /**
  * A warning when the transcript seems to end well before the recording does.
  * Worked out from the transcript itself rather than stored, so it is always
- * current: re-checked whenever an upload is loaded (see storage.ts).
+ * current: re-checked whenever a meeting is loaded (see lib/meetings.ts).
  */
 export function coverageNotice(transcript: { start: number; text: string }[], durationSec: number): string | undefined {
   const { throughSec, partial } = transcriptCoverage(transcript, durationSec);
   if (!partial) return undefined;
   return `This transcript seems to stop at about ${formatTimestamp(throughSec)} of a ${formatTimestamp(durationSec)} recording, so the end of the call may be missing. The summary and action items only cover what was transcribed. Try uploading it again, or a shorter recording.`;
-}
-
-/** The lightweight row My Calls needs for an uploaded meeting. */
-export function toListItem(m: Meeting): MeetingListItem {
-  return {
-    id: m.id,
-    title: m.title,
-    date: m.date,
-    durationSec: m.durationSec,
-    platform: m.platform,
-    source: "upload",
-    poster: m.poster,
-    attendees: m.attendees,
-    shareToken: m.shareToken,
-  };
 }

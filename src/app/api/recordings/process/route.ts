@@ -1,31 +1,30 @@
 import { analyzeRecording } from "@/lib/gemini/analyze";
 import { GeminiError } from "@/lib/gemini/errors";
-import { isValidFileName } from "@/lib/gemini/files";
-import { buildMeeting } from "@/lib/recordings/toMeeting";
+import { completeMeeting, getPending } from "@/lib/meetings";
+import type { ProcessResponse } from "@/lib/recordings/types";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { saveUploadShare } from "@/lib/uploadShare";
+import { requireOwnerId } from "@/lib/server/owner";
 
 // Step 3: one Gemini call that returns the transcript, title, summary and
-// action items. Gemini can take 30-40s (longer when it is overloaded and this
-// has to retry), so allow the maximum a Hobby-plan function may run.
+// action items, which are then saved to the database. Gemini can take 30-40s
+// (longer when it is overloaded and this has to retry), so allow the maximum a
+// Hobby-plan function may run.
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
     enforceRateLimit(request, "process", 6, 10 * 60_000);
-    const body = await readJson(request, 10_000);
-    const { fileName, durationSec } = body;
-    if (typeof fileName !== "string" || !isValidFileName(fileName) || typeof durationSec !== "number") {
-      throw new GeminiError("invalid_input");
-    }
-    const result = await analyzeRecording(fileName, durationSec);
-    // Store a shareable copy of the RESULT (never the recording) and hand back its token. The result is built
-    // here on the server, so nothing a client sends ends up in the store. If the store is unavailable the
-    // user still gets their transcript, just without a link.
-    const shareToken = await saveUploadShare(
-      buildMeeting(result, { id: "shared", createdAt: new Date().toISOString(), durationSec, fileName: "", mimeType: "", sizeBytes: 0 }),
-    );
-    return json(shareToken ? { ...result, shareToken } : result);
+    const ownerId = await requireOwnerId();
+    const { meetingId } = await readJson(request, 10_000);
+    if (typeof meetingId !== "string") throw new GeminiError("invalid_input");
+
+    // Everything about the recording comes from the record made in step 1, not from this request.
+    const doc = await getPending(meetingId, ownerId);
+    if (!doc.geminiFileName) throw new GeminiError("not_found");
+
+    const result = await analyzeRecording(doc.geminiFileName, doc.durationSec);
+    await completeMeeting(doc, result);
+    return json({ meetingId: doc._id, shareToken: doc.shareToken } satisfies ProcessResponse);
   } catch (e) {
     return errorResponse(e);
   }

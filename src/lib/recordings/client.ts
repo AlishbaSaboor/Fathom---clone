@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { formatDuration } from "@/lib/format";
 import {
   ACCEPTED_FORMATS_LABEL,
@@ -10,17 +11,24 @@ import {
   formatBytes,
   resolveMimeType,
 } from "./limits";
-import type { ApiErrorBody, FileStatusResponse, ProcessedRecording, StartUploadResponse } from "./types";
+import type {
+  ApiErrorBody,
+  CreateUploadResponse,
+  FileStatusResponse,
+  ImportResponse,
+  ProcessResponse,
+} from "./types";
 
-interface FoundFile {
-  name: string;
-  state: string;
-}
-
-// The browser side of an upload. The recording goes straight from the browser
-// to Gemini (Vercel would reject a body over 4.5 MB); our server only starts
-// the upload session (it holds the API key), checks on the file, and asks
-// Gemini to transcribe it.
+// The browser side of an upload. The recording goes from the browser straight
+// to Vercel Blob (Vercel would reject a function request body over 4.5 MB) and
+// is uploaded once. Our server then copies it from Blob to Gemini, waits for
+// Gemini to be ready, and has it transcribed and saved:
+//
+//   1. register   the server checks the file and picks where it goes in Blob
+//   2. upload     browser -> Blob, with a short-lived token for that one file
+//   3. import     server: Blob -> Gemini
+//   4. prepare    wait for Gemini to finish preparing the file
+//   5. process    Gemini transcribes and summarizes; the server saves the result
 
 export type Stage = "starting" | "uploading" | "preparing" | "analyzing";
 
@@ -43,13 +51,23 @@ export class UploadError extends Error {
 }
 
 /**
- * Carries state between attempts so a retry after a failed analysis does not
- * upload the file again: once Gemini has the file, only the analysis is repeated.
+ * Carries state between attempts so a retry does not redo finished work: a file
+ * that is already in Blob is not uploaded again, and one Gemini already has is
+ * not copied again.
  */
 export interface UploadSession {
-  mimeType: string;
   durationSec: number;
+  meetingId?: string;
+  pathname?: string;
+  contentType?: string;
+  uploaded?: boolean;
   geminiFileName?: string;
+}
+
+/** Forget a recording the server no longer has, so the next attempt registers and uploads it afresh. */
+function forgetRecording(session: UploadSession) {
+  session.meetingId = session.pathname = session.contentType = session.geminiFileName = undefined;
+  session.uploaded = false;
 }
 
 /** A friendly message if the file can't be used, otherwise null. Cheap checks only. */
@@ -129,68 +147,6 @@ async function api<T>(path: string, init: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-/**
- * Sends the bytes to the pre-authorized Gemini upload URL, reporting progress.
- *
- * Gemini's upload server answers the final request WITHOUT a CORS header, so
- * even when the upload succeeds the browser blocks this code from reading the
- * reply (which is where the file's name would be). Error replies do carry the
- * header, so they stay readable. We can still tell that every byte was
- * delivered (the request body finished sending), so in that case we resolve
- * without a name and the caller asks our server to look the file up by token.
- */
-function uploadToGemini(
-  uploadUrl: string,
-  file: File,
-  onPercent: (p: number) => void,
-  signal: AbortSignal,
-): Promise<{ name?: string }> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    let bodySent = false;
-    xhr.open("POST", uploadUrl);
-    xhr.setRequestHeader("X-Goog-Upload-Offset", "0");
-    xhr.setRequestHeader("X-Goog-Upload-Command", "upload, finalize");
-    xhr.upload.onprogress = (e) => e.lengthComputable && onPercent(Math.round((e.loaded / e.total) * 100));
-    xhr.upload.onload = () => {
-      bodySent = true;
-      onPercent(100);
-    };
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const name = JSON.parse(xhr.responseText)?.file?.name as string | undefined;
-          return resolve({ name });
-        } catch {
-          return resolve({});
-        }
-      }
-      reject(new UploadError("The upload was rejected. Please try again or use a different file.", xhr.status >= 500));
-    };
-    xhr.onerror = () => {
-      if (bodySent) return resolve({}); // delivered; only the reply was unreadable (see above)
-      reject(new UploadError("The upload was interrupted. Check your connection and try again.", true));
-    };
-    xhr.onabort = () => reject(new DOMException("Aborted", "AbortError"));
-    signal.addEventListener("abort", () => xhr.abort(), { once: true });
-    xhr.send(file);
-  });
-}
-
-/** Asks the server for the uploaded file's name, retrying briefly while Gemini finishes registering it. */
-async function confirmUpload(token: string, signal: AbortSignal): Promise<string> {
-  for (let i = 0; i < 12; i++) {
-    try {
-      const found = await api<FoundFile>(`/api/recordings/find?token=${encodeURIComponent(token)}`, { signal });
-      return found.name;
-    } catch (e) {
-      if (!(e instanceof UploadError) || !/wasn't found/i.test(e.message)) throw e;
-      await sleep(1500, signal);
-    }
-  }
-  throw new UploadError("The upload finished but couldn't be confirmed. Please try again.", true);
-}
-
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     const t = window.setTimeout(resolve, ms);
@@ -204,40 +160,81 @@ const sleep = (ms: number, signal: AbortSignal) =>
     );
   });
 
+/** Uploads at least this big go to Blob in parallel parts, which is faster and retries a failed part on its own. */
+const MULTIPART_ABOVE_BYTES = 10 * 1024 * 1024;
+
+const post = <T>(path: string, body: unknown, signal: AbortSignal) =>
+  api<T>(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
+
 /**
- * Upload (unless this session already did), wait for Gemini to prepare the
- * file, then transcribe and summarize it. Throws UploadError for anything the
- * user should see, and AbortError when cancelled.
+ * Runs the five steps above, skipping any this session already finished. Throws
+ * UploadError for anything the user should see, and AbortError when cancelled.
+ * Resolves with the id of the saved meeting and its share token.
  */
 export async function processRecording(
   file: File,
   session: UploadSession,
   onProgress: (p: Progress) => void,
   signal: AbortSignal,
-): Promise<ProcessedRecording> {
+): Promise<ProcessResponse> {
   if (exceedsDurationLimit(session.durationSec)) {
     throw new UploadError(`That recording is longer than ${formatDuration(MAX_DURATION_SEC)}. Try a shorter one.`);
   }
 
-  if (!session.geminiFileName) {
+  // 1. register
+  if (!session.meetingId) {
     onProgress({ stage: "starting" });
-    const { uploadUrl, token } = await api<StartUploadResponse>("/api/recordings/start-upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mimeType: session.mimeType, sizeBytes: file.size }),
+    const created = await post<CreateUploadResponse>(
+      "/api/recordings/create",
+      { fileName: file.name, browserType: file.type, sizeBytes: file.size, durationSec: session.durationSec },
       signal,
-    });
-    onProgress({ stage: "uploading", percent: 0 });
-    const uploaded = await uploadToGemini(uploadUrl, file, (percent) => onProgress({ stage: "uploading", percent }), signal);
-    session.geminiFileName = uploaded.name ?? (await confirmUpload(token, signal));
+    );
+    session.meetingId = created.meetingId;
+    session.pathname = created.pathname;
+    session.contentType = created.contentType;
   }
 
+  // 2. upload
+  if (!session.uploaded) {
+    onProgress({ stage: "uploading", percent: 0 });
+    try {
+      await upload(session.pathname!, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+        clientPayload: session.meetingId,
+        contentType: session.contentType,
+        multipart: file.size > MULTIPART_ABOVE_BYTES,
+        abortSignal: signal,
+        onUploadProgress: ({ percentage }) => onProgress({ stage: "uploading", percent: Math.round(percentage) }),
+      });
+    } catch (e) {
+      if (signal.aborted || (e as Error).name === "AbortError") throw new DOMException("Aborted", "AbortError");
+      // A previous attempt may have delivered the whole file and only lost the reply; the server checks the file itself in the next step.
+      if (!/already exists/i.test((e as Error).message ?? "")) {
+        throw new UploadError("The upload was interrupted. Check your connection and try again.", true);
+      }
+    }
+    session.uploaded = true;
+    onProgress({ stage: "uploading", percent: 100 });
+  }
+
+  // 3. import (server: Blob -> Gemini)
   onProgress({ stage: "preparing" });
+  if (!session.geminiFileName) {
+    try {
+      session.geminiFileName = (await post<ImportResponse>("/api/recordings/import", { meetingId: session.meetingId }, signal)).fileName;
+    } catch (e) {
+      if (e instanceof UploadError && /wasn't found/i.test(e.message)) forgetRecording(session);
+      throw e;
+    }
+  }
+
+  // 4. prepare
   const MAX_POLLS = 180; // x 2 s = up to 6 minutes; big video files take a while to prepare
   for (let i = 0; i < MAX_POLLS; i++) {
     const status = await api<FileStatusResponse>(`/api/recordings/file?name=${encodeURIComponent(session.geminiFileName)}`, { signal }).catch(
       (e) => {
-        // The file vanished (expired or deleted): forget it so a retry uploads again.
+        // The file vanished (expired or deleted): forget it so a retry copies it to Gemini again.
         if (e instanceof UploadError && /wasn't found/i.test(e.message)) session.geminiFileName = undefined;
         throw e;
       },
@@ -251,14 +248,10 @@ export async function processRecording(
     await sleep(2000, signal);
   }
 
+  // 5. process
   onProgress({ stage: "analyzing" });
   try {
-    return await api<ProcessedRecording>("/api/recordings/process", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fileName: session.geminiFileName, durationSec: Math.ceil(session.durationSec) }),
-      signal,
-    });
+    return await post<ProcessResponse>("/api/recordings/process", { meetingId: session.meetingId }, signal);
   } catch (e) {
     if (e instanceof UploadError && /wasn't found/i.test(e.message)) session.geminiFileName = undefined;
     throw e;

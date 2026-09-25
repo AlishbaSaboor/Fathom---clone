@@ -1,6 +1,5 @@
-import { Avatar } from "@/components/ui/Avatar";
 import { formatTimestamp } from "@/lib/format";
-import type { Attendee, SummarySection } from "@/types/meeting";
+import type { SummarySection } from "@/types/meeting";
 
 function TimeLink({ time, onJump }: { time: number; onJump: (t: number) => void }) {
   return (
@@ -17,16 +16,8 @@ function TimeLink({ time, onJump }: { time: number; onJump: (t: number) => void 
 
 const list = "mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed marker:text-zinc-400";
 
-/** Renders one summary section. Layout depends on the section kind, which is what makes templates look different. */
-export function SectionRenderer({
-  section,
-  attendees,
-  onJump,
-}: {
-  section: SummarySection;
-  attendees: Attendee[];
-  onJump: (t: number) => void;
-}) {
+/** Renders one summary section; the layout depends on the section kind. */
+export function SectionRenderer({ section, onJump }: { section: SummarySection; onJump: (t: number) => void }) {
   return (
     <section aria-labelledby={`sec-${section.id}`} className="mb-7">
       <h3 id={`sec-${section.id}`} className="text-base font-semibold">
@@ -55,28 +46,6 @@ export function SectionRenderer({
               <p className="mt-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t.summary}</p>
             </div>
           ))}
-        </div>
-      )}
-
-      {section.kind === "byPerson" && (
-        <div className="mt-3 space-y-4">
-          {section.entries.map((e) => {
-            const person = attendees.find((a) => a.id === e.attendeeId);
-            if (!person) return null;
-            return (
-              <div key={e.attendeeId}>
-                <div className="flex items-center gap-2">
-                  <Avatar attendee={person} size="sm" />
-                  <h4 className="text-sm font-semibold">{person.name}</h4>
-                </div>
-                <ul className={list}>
-                  {e.items.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
         </div>
       )}
     </section>

@@ -3,19 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { AvatarStack } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toast";
-import { CalendarIcon, CheckIcon, ClockIcon, DiamondIcon, LinkIcon } from "@/components/ui/icons";
-import { formatDate, formatDuration, formatTimestamp } from "@/lib/format";
+import { CalendarIcon, CheckIcon, ClockIcon, LinkIcon } from "@/components/ui/icons";
+import { formatDate, formatDuration } from "@/lib/format";
 import type { Meeting } from "@/types/meeting";
 import { ActionItemActions } from "./ActionItemActions";
 import { ActionItemList } from "./ActionItemList";
 import { MeetingMenu } from "./MeetingMenu";
 
-const platformLabel = { zoom: "Zoom", meet: "Google Meet", teams: "Microsoft Teams", upload: "Uploaded recording" } as const;
-
 // Copies the public share link. The link is a route that needs no login; see
-// app/(share)/share/[token]. There is no revocation or expiry (stubbed). It is
-// shown on the share page too, like the real product, where it just copies the
-// link the viewer is already on.
+// app/(share)/share/[token]. It works until the owner deletes the recording. It
+// is shown on the share page too, where it just copies the link the viewer is
+// already on.
 function ShareButton({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -58,13 +56,12 @@ export function MeetingSidebar({
   onToggle: (id: string) => void;
   onJump: (t: number) => void;
   readOnly: boolean;
-  /** Uploaded recordings: remove the meeting and its file from this browser. */
+  /** Owner only: delete the recording, its file and its share link. */
   onDelete?: () => void;
-  /** Uploaded recordings: save the original file. Only provided when the file is available. */
+  /** Owner only: save the original file. */
   onDownload?: () => void;
 }) {
   const { show, toast } = useToast();
-  const people = new Map(meeting.attendees.map((a) => [a.id, a]));
   const doneCount = meeting.actionItems.filter((a) => done[a.id]).length;
 
   return (
@@ -85,7 +82,6 @@ export function MeetingSidebar({
             <ClockIcon className="h-3.5 w-3.5" />
             {formatDuration(meeting.durationSec)}
           </span>
-          <span>{platformLabel[meeting.platform]}</span>
         </div>
         <div className="mt-3 flex items-center gap-2">
           <AvatarStack attendees={meeting.attendees} max={6} />
@@ -93,25 +89,12 @@ export function MeetingSidebar({
         </div>
       </div>
 
-      {/* Share (or, for an upload, a note that it can't be shared) with the "…" menu beside it.
-          The public share view has no menu: viewers can't download or delete. */}
+      {/* Share, with the "…" menu beside it. The public share view has no menu: viewers can't download or delete. */}
       <div className="flex items-stretch gap-2">
         <div className="min-w-0 flex-1">
-          {/* An upload gets a link to its transcript and summary when a shareable copy was stored; one saved
-              before that existed (or when sharing was unavailable) is browser-only and has nothing to share. */}
-          {meeting.source === "upload" ? (
-            meeting.shareToken ? (
-              <ShareButton path={`/share/upload/${meeting.shareToken}`} />
-            ) : (
-              <p className="rounded-md bg-zinc-100 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-                Stored in this browser only. It can&rsquo;t be shared with a link.
-              </p>
-            )
-          ) : (
-            <ShareButton path={`/share/${meeting.shareToken}`} />
-          )}
+          <ShareButton path={`/share/${meeting.shareToken}`} />
         </div>
-        {!readOnly && <MeetingMenu meeting={meeting} onDownload={onDownload} onDelete={onDelete} onNotify={show} />}
+        {!readOnly && onDownload && onDelete && <MeetingMenu onDownload={onDownload} onDelete={onDelete} />}
       </div>
       </div>
 
@@ -142,44 +125,6 @@ export function MeetingSidebar({
         />
       </section>
 
-      {/* "Internal team only" mirrors the real product: annotations are notes for
-          the owner's team, so the public share view hides this panel. */}
-      {!readOnly && meeting.highlights.length > 0 && (
-        <section aria-labelledby="annotations-heading">
-          <h2 id="annotations-heading" className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Annotations
-            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
-              INTERNAL TEAM ONLY
-            </span>
-          </h2>
-          <ul className="space-y-3">
-            {meeting.highlights.map((h) => (
-              <li key={h.id} className="flex items-start gap-2.5">
-                <DiamondIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-300" />
-                <div className="min-w-0 text-sm">
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold text-blue-700 dark:text-blue-300">Highlight</span>
-                    <button
-                      type="button"
-                      onClick={() => onJump(h.timestamp)}
-                      title="Jump to this moment in the transcript"
-                      className="rounded px-1 text-xs tabular-nums text-blue-600 hover:underline dark:text-blue-300"
-                    >
-                      @ {formatTimestamp(h.timestamp)}
-                    </button>
-                  </p>
-                  <p className="mt-0.5 leading-snug text-zinc-700 dark:text-zinc-300">{h.note}</p>
-                  {people.get(h.createdById) && (
-                    <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                      {people.get(h.createdById)!.name}
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
       </div>
       {toast}
     </div>

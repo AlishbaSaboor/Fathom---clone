@@ -1,10 +1,10 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { ChevronDownIcon, DiamondIcon, ListCheckIcon, SearchIcon, XIcon } from "@/components/ui/icons";
+import { ChevronDownIcon, ListCheckIcon, SearchIcon, XIcon } from "@/components/ui/icons";
 import { formatTimestamp } from "@/lib/format";
 import { escapeRegExp, segmentIdAt } from "@/lib/transcript";
-import type { ActionItem, Highlight, Meeting } from "@/types/meeting";
+import type { ActionItem, Meeting } from "@/types/meeting";
 import type { JumpRequest } from "../MeetingDetail";
 
 /** Wraps case-insensitive matches of `query` in <mark>. */
@@ -26,25 +26,17 @@ function Marked({ text, query }: { text: string; query: string }) {
   );
 }
 
-interface Marks {
-  highlights: Highlight[];
-  actions: ActionItem[];
-}
-
 export function TranscriptTab({
   meeting,
   jump,
-  readOnly = false,
   activeSegmentId,
   onSeek,
 }: {
   meeting: Meeting;
   jump: JumpRequest | null;
-  /** Public share view: the highlighted moment stays marked, but its internal note is not shown. */
-  readOnly?: boolean;
-  /** Uploaded recordings only: the segment being spoken right now. */
+  /** The segment being spoken right now. */
   activeSegmentId?: string;
-  /** Uploaded recordings only: makes timestamps play from that moment. */
+  /** Makes timestamps play the recording from that moment. */
   onSeek?: (seconds: number) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -52,18 +44,13 @@ export function TranscriptTab({
 
   const people = useMemo(() => new Map(meeting.attendees.map((a) => [a.id, a])), [meeting.attendees]);
 
-  // Highlights and action items are pinned to the segment being spoken at
-  // their timestamp, so they show inline in the transcript like the real product.
-  const marks = useMemo(() => {
-    const bySegment = new Map<string, Marks>();
-    const slot = (time: number) => {
-      const id = segmentIdAt(meeting.transcript, time);
-      if (!id) return undefined;
-      if (!bySegment.has(id)) bySegment.set(id, { highlights: [], actions: [] });
-      return bySegment.get(id);
-    };
-    meeting.highlights.forEach((h) => slot(h.timestamp)?.highlights.push(h));
-    meeting.actionItems.forEach((a) => slot(a.timestamp)?.actions.push(a));
+  // Action items are pinned to the segment being spoken at their timestamp, so they show inline in the transcript.
+  const actionsBySegment = useMemo(() => {
+    const bySegment = new Map<string, ActionItem[]>();
+    for (const a of meeting.actionItems) {
+      const id = segmentIdAt(meeting.transcript, a.timestamp);
+      if (id) bySegment.set(id, [...(bySegment.get(id) ?? []), a]);
+    }
     return bySegment;
   }, [meeting]);
 
@@ -96,7 +83,7 @@ export function TranscriptTab({
     scrollToSegment(matchIds[next]);
   }
 
-  // Jump requests come from the summary, sidebar and highlight links. The
+  // Jump requests come from the summary and sidebar links. The
   // panel is already visible by the time this runs (the parent switches tabs
   // in the same update), so the target can be scrolled to and briefly flashed.
   useEffect(() => {
@@ -178,26 +165,10 @@ export function TranscriptTab({
       <ol className="space-y-3">
         {meeting.transcript.map((seg) => {
           const speaker = people.get(seg.speakerId);
-          const m = marks.get(seg.id);
-          const highlighted = (m?.highlights.length ?? 0) > 0;
           const isCurrent = seg.id === currentId;
           return (
             <li key={seg.id} id={`seg-${seg.id}`} className="scroll-mt-24 rounded-lg">
-              {m?.highlights.map((h) => (
-                <div key={h.id} className="mb-1.5 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
-                  <DiamondIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <p>
-                    <span className="font-bold uppercase tracking-wide">Highlight</span>
-                    {!readOnly && (
-                      <>
-                        <span className="mx-1.5 text-zinc-400">···</span>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{h.note}</span>
-                      </>
-                    )}
-                  </p>
-                </div>
-              ))}
-              {m?.actions.map((a) => (
+              {actionsBySegment.get(seg.id)?.map((a) => (
                 <div key={a.id} className="mb-1.5 flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-400">
                   <ListCheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <p>
@@ -224,11 +195,7 @@ export function TranscriptTab({
                   </span>
                 )}
                 <div
-                  className={`min-w-0 flex-1 rounded-lg px-3 py-2 ${
-                    highlighted
-                      ? "border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/50"
-                      : "bg-zinc-100 dark:bg-zinc-900"
-                  } ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-blue-400" : ""}`}
+                  className={`min-w-0 flex-1 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-900 ${isCurrent ? "ring-2 ring-amber-400" : seg.id === activeSegmentId ? "ring-2 ring-blue-400" : ""}`}
                 >
                   <p className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: speaker?.avatarColor }}>
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: speaker?.avatarColor }} aria-hidden />

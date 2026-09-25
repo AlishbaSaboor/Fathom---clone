@@ -2,25 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { DEFAULT_TEMPLATE } from "@/data/templates";
 import { transcriptToText } from "@/lib/export";
 import { segmentIdAt } from "@/lib/transcript";
-import type { Meeting, TemplateId } from "@/types/meeting";
+import type { Meeting } from "@/types/meeting";
 import { AskFathomTab } from "./AskFathomTab";
 import { MediaPlayer, type PlayerHandle } from "./MediaPlayer";
 import { MeetingSidebar } from "./MeetingSidebar";
 import { SummaryTab } from "./summary/SummaryTab";
 import { TranscriptTab } from "./transcript/TranscriptTab";
-import { RecordingNote } from "./RecordingNote";
-import { VideoPlaceholder } from "./VideoPlaceholder";
 
 export type TabId = "summary" | "transcript" | "ask";
-/**
- * Real playback for an uploaded recording. `unavailable` means the file was not
- * kept in this browser (its storage was blocked when it was saved), so only the
- * transcript and summary can be shown.
- */
-export type MediaSource = { kind: "audio" | "video"; url: string } | { kind: "unavailable" };
 export interface JumpRequest {
   time: number;
   /** Changes on every request so jumping to the same time twice still scrolls. */
@@ -35,35 +26,31 @@ const TABS: { id: TabId; label: string }[] = [
 const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
 
 /**
- * The meeting detail layout: video and tabs on the left, action items and
- * annotations in a right sidebar. Shared by the signed-in page and the public
- * share page; `readOnly` removes every edit control for the latter.
+ * The meeting detail layout: the recording and tabs on the left, action items
+ * in a right sidebar. Shared by the owner's page and the public share page;
+ * `readOnly` removes every edit control for the latter. Both play the real
+ * recording from its stored URL.
  *
- * Client state only (no persistence): the active tab, selected summary
- * template, and action item checkboxes reset on reload. That is intentional
- * for this build, which has no database.
+ * The active tab is client state. Action item
+ * checkboxes are saved through `onToggleAction` (the owner's page provides it).
  */
 export function MeetingDetail({
   meeting,
   readOnly = false,
-  recordingNote,
-  media,
   onDelete,
   onDownload,
+  onToggleAction,
 }: {
   meeting: Meeting;
   readOnly?: boolean;
-  /** Shared upload preview: the recording isn't stored server-side, so this note replaces the player. */
-  recordingNote?: string;
-  /** Set for uploaded recordings, which have a real player. Seeded meetings keep the stubbed one. */
-  media?: MediaSource;
-  /** Set for uploaded recordings: lets the owner remove it from this browser. */
+  /** Owner only: deletes the recording, its file and its share link. */
   onDelete?: () => void;
-  /** Set for uploaded recordings whose file is available: saves the original file. */
+  /** Owner only: saves the original file. */
   onDownload?: () => void;
+  /** Owner only: saves an action item's checkbox. Resolves false if it could not be saved, and the checkbox is put back. */
+  onToggleAction?: (id: string, done: boolean) => Promise<boolean>;
 }) {
   const [tab, setTab] = useState<TabId>("summary");
-  const [template, setTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE);
   const [jump, setJump] = useState<JumpRequest | null>(null);
   const player = useRef<PlayerHandle>(null);
   const [activeSegmentId, setActiveSegmentId] = useState<string | undefined>();
@@ -91,11 +78,19 @@ export function MeetingDetail({
   function jumpTo(time: number) {
     setJump({ time, nonce: Date.now() });
     changeTab("transcript");
-    player.current?.seek(time); // no-op for seeded meetings (no real player)
+    player.current?.seek(time);
   }
 
-  // Uploaded recordings have a real player; clicking a transcript timestamp plays from that moment.
-  const hasPlayer = !!media && media.kind !== "unavailable";
+  function toggleAction(id: string) {
+    const next = !done[id];
+    setDone((prev) => ({ ...prev, [id]: next }));
+    void onToggleAction?.(id, next).then((saved) => {
+      if (!saved) setDone((prev) => ({ ...prev, [id]: !next }));
+    });
+  }
+
+  // Clicking a transcript timestamp plays the recording from that moment.
+  const media = meeting.media;
   function playFrom(t: number) {
     player.current?.seek(t, true);
   }
@@ -122,18 +117,13 @@ export function MeetingDetail({
   return (
     <div className="grid gap-6 [grid-template-areas:'video'_'head'_'tabs'_'side'] lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'video_side'_'tabs_side']">
       <div className="[grid-area:video]">
-        {recordingNote ? (
-          <RecordingNote meeting={meeting} note={recordingNote} />
-        ) : media && media.kind !== "unavailable" ? (
-          <MediaPlayer ref={player} url={media.url} kind={media.kind} poster={meeting.poster} onTime={onPlaybackTime} />
-        ) : (
-          <VideoPlaceholder
-            meeting={meeting}
-            note={
-              media?.kind === "unavailable"
-                ? "The original recording isn't stored in this browser, so it can't be played. The transcript and summary are unaffected."
-                : undefined
-            }
+        {media && (
+          <MediaPlayer
+            ref={player}
+            url={media.url}
+            kind={media.mimeType.startsWith("video/") ? "video" : "audio"}
+            poster={meeting.poster}
+            onTime={onPlaybackTime}
           />
         )}
       </div>
@@ -142,7 +132,7 @@ export function MeetingDetail({
         <MeetingSidebar
           meeting={meeting}
           done={done}
-          onToggle={(id) => setDone((prev) => ({ ...prev, [id]: !prev[id] }))}
+          onToggle={toggleAction}
           onJump={jumpTo}
           readOnly={readOnly}
           onDelete={onDelete}
@@ -198,15 +188,14 @@ export function MeetingDetail({
         {/* Panels stay mounted and are only hidden, so the transcript search
             text and scroll position survive switching tabs. */}
         <div role="tabpanel" id="panel-summary" aria-labelledby="tab-summary" hidden={tab !== "summary"}>
-          <SummaryTab meeting={meeting} template={template} onTemplateChange={setTemplate} onJump={jumpTo} />
+          <SummaryTab meeting={meeting} onJump={jumpTo} />
         </div>
         <div role="tabpanel" id="panel-transcript" aria-labelledby="tab-transcript" hidden={tab !== "transcript"}>
           <TranscriptTab
             meeting={meeting}
             jump={jump}
-            readOnly={readOnly}
-            activeSegmentId={hasPlayer ? activeSegmentId : undefined}
-            onSeek={hasPlayer ? playFrom : undefined}
+            activeSegmentId={activeSegmentId}
+            onSeek={playFrom}
           />
         </div>
         <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" hidden={tab !== "ask"}>

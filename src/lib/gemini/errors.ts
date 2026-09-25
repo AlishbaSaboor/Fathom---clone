@@ -18,6 +18,9 @@ export type GeminiErrorKind =
   | "not_found"
   | "invalid_input" // our own validation (size, type, question length)
   | "rate_limited" // our own per-IP limit
+  | "unauthorized" // no anonymous owner cookie on the request
+  | "storage_full" // our own recording storage cap
+  | "storage_unavailable" // database or file storage unreachable
   | "unknown";
 
 const MESSAGES: Record<GeminiErrorKind, string> = {
@@ -40,6 +43,9 @@ const MESSAGES: Record<GeminiErrorKind, string> = {
   not_found: "That upload wasn't found. It may have expired, so please upload the file again.",
   invalid_input: "That request wasn't valid.",
   rate_limited: "You're going a bit fast. Please wait a moment and try again.",
+  unauthorized: "Your browser session couldn't be identified. Reload the page and try again.",
+  storage_full: "Recording storage is full right now, so this can't be saved. Delete an older recording and try again.",
+  storage_unavailable: "Couldn't reach storage. Please try again in a moment.",
   unknown: "Something went wrong talking to Gemini. Please try again.",
 };
 
@@ -61,10 +67,22 @@ const STATUS: Record<GeminiErrorKind, number> = {
   not_found: 404,
   invalid_input: 400,
   rate_limited: 429,
+  unauthorized: 401,
+  storage_full: 507,
+  storage_unavailable: 503,
   unknown: 500,
 };
 
-const RETRYABLE = new Set<GeminiErrorKind>(["busy", "rate_limit", "timeout", "network", "bad_output", "file_not_ready", "rate_limited"]);
+const RETRYABLE = new Set<GeminiErrorKind>([
+  "busy",
+  "rate_limit",
+  "timeout",
+  "network",
+  "bad_output",
+  "file_not_ready",
+  "rate_limited",
+  "storage_unavailable",
+]);
 
 /** An error whose message is safe to show to the user (never contains keys or raw upstream bodies). */
 export class GeminiError extends Error {

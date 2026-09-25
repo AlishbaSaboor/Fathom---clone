@@ -4,9 +4,7 @@ import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { AlertIcon, ArrowUpIcon, CheckIcon, CopyIcon, PanelRightIcon, SparkleIcon, XIcon } from "@/components/ui/icons";
 import { copyRich } from "@/lib/clipboard";
-import { MAX_UPLOADED_CALLS, buildDigest } from "@/lib/digest";
 import { MAX_QUESTION_CHARS } from "@/lib/recordings/limits";
-import { useUploads } from "@/lib/recordings/storage";
 import type { ApiErrorBody, AskAllRequest, AskAllResponse } from "@/lib/recordings/types";
 import type { MeetingListItem } from "@/types/meeting";
 
@@ -88,10 +86,9 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
 
 /**
  * Account-level Ask Fathom: a chat across every call, answered from summaries.
- * Built-in calls are digested on the server; the visitor's uploaded calls only
- * exist in this browser, so their digests are sent with each question (see
- * lib/digest.ts). The panel stays mounted while hidden, so a conversation
- * survives hiding and re-showing it.
+ * The server digests the visitor's own calls from the database (see
+ * lib/digest.ts); only the question and the conversation are sent. The panel
+ * stays mounted while hidden, so a conversation survives hiding and re-showing it.
  */
 export function AskAllPanel({
   meetings,
@@ -107,7 +104,6 @@ export function AskAllPanel({
   onHideDesktop: () => void;
   onCloseMobile: () => void;
 }) {
-  const uploads = useUploads();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
@@ -116,14 +112,9 @@ export function AskAllPanel({
   const abort = useRef<AbortController | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
-  // Where a cited call lives. Uploaded calls open at /uploads/, built-in ones at /meetings/.
-  const hrefs = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const m of meetings) map.set(m.id, `/meetings/${m.id}`);
-    for (const u of uploads) map.set(u.id, `/uploads/${u.id}`);
-    return map;
-  }, [meetings, uploads]);
-  const callCount = meetings.length + uploads.length;
+  // Where a cited call lives: only the visitor's own calls can be linked to.
+  const hrefs = useMemo(() => new Map(meetings.map((m) => [m.id, `/meetings/${m.id}`])), [meetings]);
+  const callCount = meetings.length;
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -152,10 +143,6 @@ export function AskAllPanel({
       question: q,
       today,
       history: history.filter((m) => !m.error).map((m) => ({ role: m.role, text: plainText(m.text) })),
-      uploads: [...uploads]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, MAX_UPLOADED_CALLS)
-        .map((m) => ({ id: m.id, title: m.title, date: m.date, digest: buildDigest(m) })),
     };
 
     try {
@@ -367,7 +354,7 @@ export function AskAllPanel({
           className="block w-full resize-none bg-transparent px-3 pt-2.5 text-sm outline-none placeholder:text-zinc-400"
         />
         <div className="flex items-center justify-between px-2 pb-2">
-          {/* Team Calls is an out-of-scope stub, so scope is fixed to My Calls: a label, not a dead dropdown. */}
+          {/* The question always covers all of My Calls: a label, not a dead dropdown. */}
           <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">My Calls</span>
           <button
             type="submit"

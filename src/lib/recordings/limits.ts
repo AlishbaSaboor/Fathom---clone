@@ -77,6 +77,43 @@ export function resolveMimeType(fileName: string, browserType = ""): string | nu
   return mime;
 }
 
+/**
+ * The type a recording is stored and served with. Gemini's names above are not
+ * always the standard ones browsers expect (audio/mp3, video/mov), and a
+ * recording is played straight from its stored URL, so it is stored under the
+ * standard type.
+ */
+const PLAYBACK_BY_EXTENSION: Record<string, string> = {
+  wav: "audio/wav",
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  aac: "audio/aac",
+  ogg: "audio/ogg",
+  flac: "audio/flac",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  webm: "video/webm",
+};
+
+export function resolvePlaybackMime(fileName: string, browserType = ""): string | null {
+  const ext = fileName.toLowerCase().split(".").pop() ?? "";
+  const mime = PLAYBACK_BY_EXTENSION[ext];
+  if (!mime) return null;
+  if (ext === "webm" && browserType.startsWith("audio/")) return "audio/webm";
+  return mime;
+}
+
+/**
+ * Recordings live in Vercel Blob, whose free tier holds 1 GB in total and locks
+ * the store for 30 days if it is exceeded, so uploads are refused well before
+ * that: one visitor may hold a limited amount, and the whole app stops accepting
+ * new uploads a little short of the cap.
+ */
+export const OWNER_STORAGE_CAP_BYTES = 400 * 1024 * 1024;
+export const TOTAL_STORAGE_CAP_BYTES = 800 * 1024 * 1024;
+/** An upload that never finished (closed tab, failed analysis) is cleaned up after this long. */
+export const STALE_UPLOAD_MS = 24 * 60 * 60 * 1000;
+
 export const isVideoMime = (mime: string) => mime.startsWith("video/");
 
 export function formatBytes(bytes: number): string {

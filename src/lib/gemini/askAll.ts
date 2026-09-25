@@ -1,8 +1,8 @@
 import "server-only";
-import { meetings } from "@/data/meetings";
-import { MAX_CONTEXT_CHARS, MAX_DIGEST_CHARS, MAX_UPLOADED_CALLS, buildDigest, clean } from "@/lib/digest";
+import { MAX_CONTEXT_CHARS, buildDigest, clean } from "@/lib/digest";
 import { MAX_HISTORY_CHARS, MAX_HISTORY_TURNS, MAX_QUESTION_CHARS } from "@/lib/recordings/limits";
 import type { AskAllRequest, AskAllResponse } from "@/lib/recordings/types";
+import type { Meeting } from "@/types/meeting";
 import { GeminiError } from "./errors";
 import { generateWithFallback } from "./request";
 
@@ -14,7 +14,7 @@ Rules:
 - Answer only from the digests. If they don't contain the answer, say so plainly instead of guessing, and say a call's full transcript may have the detail.
 - Today's date is given in the tags. Judge deadlines and "recent" against it. Say when a due date has already passed. Only open items are still to do.
 - Be concise and direct. Short paragraphs or "-" bullets; no headings, no tables.
-- When you refer to a call, cite it as [[id|Title]] using its exact id and title from the digest, for example [[weekly-product-standup|Weekly product standup]]. Never invent an id.
+- When you refer to a call, cite it as [[id|Title]] using its exact id and title from the digest, for example [[3f2a9c1e-7b4d-4e08-9a15-c6d2b8e01f47|Weekly product standup]]. Never invent an id.
 - Refer to people by the names used in the digests.
 - Also suggest three short follow-up questions the user might ask next, each under 60 characters, answerable from the digests.`;
 
@@ -32,39 +32,14 @@ interface Call {
   digest: string;
 }
 
-// The built-in calls never change, so digest them once.
-let seeded: Call[] | null = null;
-function seededCalls(): Call[] {
-  seeded ??= meetings.map((m) => ({ id: m.id, title: clean(m.title), date: m.date.slice(0, 10), digest: buildDigest(m) }));
-  return seeded;
-}
-
-/** Validates the browser-supplied uploads: the browser is untrusted, so shape, size and content are all re-checked. */
-export function uploadedCalls(raw: unknown): Call[] {
-  if (!Array.isArray(raw)) return [];
-  const calls: Call[] = [];
-  for (const u of raw.slice(0, MAX_UPLOADED_CALLS)) {
-    if (!u || typeof u !== "object") continue;
-    const { id, title, date, digest } = u as Record<string, unknown>;
-    if (typeof id !== "string" || !/^[\w-]{1,80}$/.test(id)) continue;
-    if (typeof title !== "string" || typeof digest !== "string") continue;
-    calls.push({
-      id,
-      title: clean(title).slice(0, 200),
-      date: typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date) ? date.slice(0, 10) : "unknown",
-      digest: clean(digest.slice(0, MAX_DIGEST_CHARS * 2)).slice(0, MAX_DIGEST_CHARS),
-    });
-  }
-  return calls;
+/** One of the visitor's calls as the model sees it: an id, a title, a date and a digest (never the transcript). */
+function toCall(m: Meeting): Call {
+  return { id: m.id, title: clean(m.title), date: m.date.slice(0, 10), digest: buildDigest(m) };
 }
 
 /** All calls, newest first, cut to the context budget (whole calls only, so no digest is half-included). */
-export function buildContext(uploads: Call[], today: string): { text: string; count: number } {
-  const builtIn = seededCalls();
-  // An upload may not reuse a built-in id: that would let a browser overwrite a demo call's digest.
-  const all = [...builtIn, ...uploads.filter((u) => !builtIn.some((s) => s.id === u.id))].sort((a, b) =>
-    b.date.localeCompare(a.date),
-  );
+export function buildContext(calls: Call[], today: string): { text: string; count: number } {
+  const all = [...calls].sort((a, b) => b.date.localeCompare(a.date));
   const parts: string[] = [];
   let used = 0;
   for (const c of all) {
@@ -89,18 +64,26 @@ export function parseAskAllBody(body: Record<string, unknown>): AskAllRequest {
     question: body.question,
     history,
     today: typeof body.today === "string" ? body.today : undefined,
-    uploads: body.uploads as AskAllRequest["uploads"],
   };
 }
 
-export async function askAcrossCalls(input: AskAllRequest): Promise<AskAllResponse & { model: string }> {
+/** Answers a question across the visitor's calls. With no calls there is nothing to ask the model about, so it says so itself. */
+export async function askAcrossCalls(input: AskAllRequest, meetings: Meeting[]): Promise<AskAllResponse & { model: string }> {
   const question = input.question.trim();
   if (!question) throw new GeminiError("invalid_input", "Please type a question.");
   if (question.length > MAX_QUESTION_CHARS) {
     throw new GeminiError("invalid_input", `Please keep your question under ${MAX_QUESTION_CHARS} characters.`);
   }
+  if (meetings.length === 0) {
+    return {
+      answer: "You don't have any calls yet. Upload a recording and I can answer questions across all of your calls.",
+      followUps: [],
+      analyzed: 0,
+      model: "",
+    };
+  }
   const today = input.today && /^\d{4}-\d{2}-\d{2}$/.test(input.today) ? input.today : new Date().toISOString().slice(0, 10);
-  const { text: context, count } = buildContext(uploadedCalls(input.uploads), today);
+  const { text: context, count } = buildContext(meetings.map(toCall), today);
 
   const history = (input.history ?? []).slice(-MAX_HISTORY_TURNS).map((t) => ({
     role: t.role === "assistant" ? "model" : "user",

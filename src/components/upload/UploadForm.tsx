@@ -19,10 +19,7 @@ import {
   MAX_UPLOAD_BYTES,
   exceedsDurationLimit,
   formatBytes,
-  resolveMimeType,
 } from "@/lib/recordings/limits";
-import { StorageFullError, deleteMedia, saveMedia, saveUpload } from "@/lib/recordings/storage";
-import { buildMeeting } from "@/lib/recordings/toMeeting";
 
 type Status = "idle" | "running" | "done" | "error";
 type Step = "upload" | "prepare" | "analyze" | "save";
@@ -33,8 +30,6 @@ const STEPS: { id: Step; label: string }[] = [
   { id: "analyze", label: "Transcribing and summarizing" },
   { id: "save", label: "Saving your result" },
 ];
-
-const newId = () => `up-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)).slice(0, 12)}`;
 
 export function UploadForm() {
   const router = useRouter();
@@ -56,7 +51,7 @@ export function UploadForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   // Counts file choices so a slow measurement of an earlier file can't overwrite a later choice.
   const choiceId = useRef(0);
-  // Set the moment the result is saved: from then on nothing may hold the user back on this page.
+  // Set the moment the server has saved the result: from then on nothing may hold the user back on this page.
   const leaving = useRef(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
@@ -83,7 +78,7 @@ export function UploadForm() {
   // back it with a full page load: after a short wait, and the moment the tab is visible or focused again.
   useEffect(() => {
     if (!savedId) return;
-    const url = `/uploads/${savedId}`;
+    const url = `/meetings/${savedId}`;
     const go = () => {
       // A full page load on purpose: this is the fallback for when router.push did not get us there.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
@@ -122,7 +117,7 @@ export function UploadForm() {
         setProblem(`That recording is ${formatDuration(d)} long. The limit is ${formatDuration(MAX_DURATION_SEC)}.`);
       } else {
         setDurationSec(d);
-        session.current = { mimeType: resolveMimeType(f.name, f.type)!, durationSec: d };
+        session.current = { durationSec: d };
       }
     } catch (e) {
       if (mine !== choiceId.current) return;
@@ -167,40 +162,22 @@ export function UploadForm() {
     setElapsed(0);
 
     try {
-      const processed = await processRecording(file, session.current, onProgress, ac.signal);
-
+      // The server saves the result to the database as the last step of processing.
+      const saved = await processRecording(file, session.current, onProgress, ac.signal);
       setStep("save");
-      const id = newId();
-      const meeting = buildMeeting(processed, {
-        id,
-        createdAt: new Date().toISOString(),
-        durationSec: Math.max(session.current.durationSec, processed.transcript.at(-1)?.start ?? 0),
-        fileName: file.name,
-        mimeType: session.current.mimeType,
-        sizeBytes: file.size,
-      });
-      // The recording goes in IndexedDB. If that fails (private mode, quota) the
-      // transcript and summary are still saved; the page just has no player.
-      await saveMedia(id, file).catch(() => undefined);
-      try {
-        saveUpload(meeting);
-      } catch (e) {
-        await deleteMedia(id).catch(() => undefined);
-        throw e instanceof StorageFullError ? new UploadError(e.message) : e;
-      }
-      // Saved. Disarm the leave-guard first (a full page load is the fallback route to the result, and it must
-      // never raise a prompt), show the done state, then go to the result.
+      // Disarm the leave-guard first (a full page load is the fallback route to the result, and it must never
+      // raise a prompt), show the done state, then go to the result.
       leaving.current = true;
-      setSavedId(id);
+      setSavedId(saved.meetingId);
       setStatus("done");
-      router.push(`/uploads/${id}`);
+      router.push(`/meetings/${saved.meetingId}`);
     } catch (e) {
       if ((e as Error).name === "AbortError") {
         setStatus("idle");
         return;
       }
       setError(e instanceof UploadError ? e : new UploadError("Something went wrong. Please try again.", true));
-      setAlreadyUploaded(!!session.current?.geminiFileName);
+      setAlreadyUploaded(!!session.current?.uploaded);
       setStatus("error");
     }
   }
@@ -317,10 +294,10 @@ export function UploadForm() {
             {status === "error" && error?.retryable ? "Try again" : "Process"}
           </button>
           <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Your recording is sent to Google&rsquo;s Gemini API to be transcribed, and is deleted from Gemini once
-            processing finishes. The recording itself stays only in this browser. The transcript, summary and action
-            items are also saved on our server for 30 days so the upload gets a share link: anyone with that link can
-            read them, and it can&rsquo;t be revoked early.
+            Your recording is stored so you can play it back later, and a temporary copy is sent to Google&rsquo;s
+            Gemini API to be transcribed; Gemini&rsquo;s copy is deleted once processing finishes. Every recording gets
+            a share link: anyone who has it can watch the recording and read the transcript. Deleting a recording
+            removes it and turns its link off.
           </p>
         </div>
       )}
@@ -369,7 +346,7 @@ export function UploadForm() {
           {status === "done" && savedId ? (
             <p role="status" className="mt-5 text-sm font-medium">
               Done. Opening your recording…{" "}
-              <a href={`/uploads/${savedId}`} className="font-semibold text-blue-700 underline dark:text-blue-300">
+              <a href={`/meetings/${savedId}`} className="font-semibold text-blue-700 underline dark:text-blue-300">
                 Open it now
               </a>
             </p>

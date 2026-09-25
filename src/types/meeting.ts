@@ -1,23 +1,18 @@
 /**
- * Data model for the Fathom clone.
+ * Data model for the app.
  *
  * All timestamps are whole seconds from the start of the meeting. They are
  * formatted for display in `lib/format.ts`, never stored as strings, so the
- * transcript, highlights, action items and summary topics can all deep-link
- * to the same position.
+ * transcript, action items and summary topics can all deep-link to the same
+ * position in the recording.
  */
-
-export type TemplateId = "general" | "sales" | "standup";
 
 export interface Attendee {
   id: string;
+  /** "Speaker N" unless a name was said aloud in the recording. */
   name: string;
-  email: string;
-  /** Job title. Filled in for the large call, optional elsewhere. */
-  role?: string;
   /** Hex color used for the avatar and the speaker label in the transcript. */
   avatarColor: string;
-  isHost?: boolean;
 }
 
 export interface TranscriptSegment {
@@ -29,36 +24,15 @@ export interface TranscriptSegment {
   start: number;
 }
 
-export interface Highlight {
-  id: string;
-  timestamp: number;
-  note: string;
-  createdById: string;
-}
-
 export interface ActionItem {
   id: string;
   text: string;
-  /** References Attendee.id. */
+  /** References Attendee.id; "" when Gemini could not tell who it was for. */
   assigneeId: string;
   /** Where in the call the item was raised. */
   timestamp: number;
-  /** Seed value only. The UI toggles this in client state, nothing is persisted. */
+  /** Saved: the owner's checkbox. */
   done: boolean;
-  // The fields below are mostly used by the large call. UI must render
-  // correctly when they are absent (flat list) and when present (grouped).
-  /** Workstream heading, e.g. "Engineering". When any item has one, the list renders grouped. */
-  group?: string;
-  /** ISO date (YYYY-MM-DD). */
-  dueDate?: string;
-  priority?: "high" | "normal";
-}
-
-/** Agenda-style chapter markers. Only long calls have these. */
-export interface Chapter {
-  id: string;
-  title: string;
-  start: number;
 }
 
 export interface SummaryTopic {
@@ -67,75 +41,43 @@ export interface SummaryTopic {
   timestamp: number;
 }
 
-/**
- * A summary is an ordered list of sections. Each template stores its own list,
- * so switching templates changes the structure, not just the labels.
- */
+/** A summary is an ordered list of sections, each rendered by its kind. */
 export type SummarySection =
   | { id: string; title: string; kind: "paragraph"; body: string }
   | { id: string; title: string; kind: "bullets"; items: string[] }
-  | { id: string; title: string; kind: "topics"; topics: SummaryTopic[] }
-  | {
-      id: string;
-      title: string;
-      kind: "byPerson";
-      entries: { attendeeId: string; items: string[] }[];
-    };
+  | { id: string; title: string; kind: "topics"; topics: SummaryTopic[] };
 
-/** Where a meeting came from. "upload" is a recording the user uploaded and had transcribed. */
-export type Platform = "zoom" | "meet" | "teams" | "upload";
+/** The stored summary. One Gemini call produces the General summary. */
+export interface SummarySet {
+  general: SummarySection[];
+}
 
 export interface Meeting {
   id: string;
   /**
    * Opaque token used by /share/[token]. Deliberately not the meeting id, so a
-   * share link does not expose or reveal internal ids.
-   * Revocation and expiry are out of scope (stubbed): a token is valid forever.
+   * share link does not expose or reveal internal ids. The link works until the
+   * owner deletes the recording.
    */
   shareToken: string;
   title: string;
-  /** ISO 8601 timestamp of the meeting start. */
+  /** ISO 8601 timestamp of when the recording was uploaded. */
   date: string;
   durationSec: number;
-  /** Display only. Capture and recording are out of scope (stubbed). */
-  platform: Platform;
-  /** Gradient colors for the generated poster shown in place of real video. */
+  /** Gradient colors for the card and the audio player, picked from the id. */
   poster: { from: string; to: string };
   attendees: Attendee[];
   transcript: TranscriptSegment[];
-  /**
-   * One stored summary per template. `general` must contain the four core
-   * sections (purpose, takeaways, topics, next-steps); see lib/validate.ts.
-   */
   summaries: SummarySet;
   actionItems: ActionItem[];
-  /** At least one per meeting. */
-  highlights: Highlight[];
-  chapters?: Chapter[];
-  /**
-   * "seed" (default) is built-in demo data with stubbed playback. "upload" is a
-   * user recording kept in this browser only (localStorage + IndexedDB), with
-   * real playback and no share link.
-   */
-  source?: "seed" | "upload";
-  /** A note shown above the tabs, e.g. that an uploaded recording was only partly transcribed. */
+  /** A note shown above the tabs, e.g. that a recording was only partly transcribed. */
   notice?: string;
-  /** For uploads: details of the original file. The bytes themselves live in IndexedDB. */
-  media?: { fileName: string; mimeType: string; sizeBytes: number };
+  /** The stored recording: `url` is its address in Vercel Blob, which is what the player and Download use. */
+  media?: { url: string; fileName: string; mimeType: string; sizeBytes: number };
 }
-
-/**
- * Stored summaries by template. `general` is always present. Seeded meetings
- * ship all three; an uploaded recording only gets `general` (one Gemini call),
- * so the template switcher offers only the templates that exist.
- */
-export type SummarySet = { general: SummarySection[] } & Partial<Record<Exclude<TemplateId, "general">, SummarySection[]>>;
 
 /** What the My Calls list needs. Keeps transcripts out of the client bundle. */
 export type MeetingListItem = Pick<
   Meeting,
-  "id" | "title" | "date" | "durationSec" | "platform" | "poster" | "attendees" | "source"
-> & {
-  /** Uploads only: token of the shareable copy ("" or absent when there isn't one). Demo meetings leave it out. */
-  shareToken?: string;
-};
+  "id" | "title" | "date" | "durationSec" | "poster" | "attendees" | "shareToken"
+>;

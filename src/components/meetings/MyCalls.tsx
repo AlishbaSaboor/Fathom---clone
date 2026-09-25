@@ -45,8 +45,8 @@ function subscribe(onChange: () => void) {
  * mounted, so hiding it keeps the conversation.
  */
 
-// Just under the app header: its 3.5rem top row + the 1px border + the 2.75rem tab row.
-const BELOW_HEADER = "lg:top-[calc(6.25rem+1px)]";
+// Just under the app header: its 3.5rem row + the 1px border.
+const BELOW_HEADER = "lg:top-[calc(3.5rem+1px)]";
 
 export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
   const hiddenDesktop = useSyncExternalStore(subscribe, readHidden, () => false);
