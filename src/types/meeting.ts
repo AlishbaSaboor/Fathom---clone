@@ -80,4 +80,7 @@ export interface Meeting {
 export type MeetingListItem = Pick<
   Meeting,
   "id" | "title" | "date" | "durationSec" | "poster" | "attendees" | "shareToken"
->;
+> & {
+  /** Saved once, when the recording finishes analysis; action items are never added or removed afterward. */
+  actionItemCount: number;
+};

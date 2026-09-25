@@ -212,6 +212,7 @@ export async function completeMeeting(doc: MeetingDoc, processed: ProcessedRecor
         durationSec: meeting.durationSec,
         attendees: meeting.attendees,
         summaries: meeting.summaries,
+        actionItemCount: meeting.actionItems.length,
         model: processed.model,
       },
       $unset: { geminiFileName: "" },
@@ -256,7 +257,10 @@ export async function getMeetingList(ownerId: string | null): Promise<MeetingLis
   if (!ownerId) return [];
   const c = await collections();
   const docs = await c.meetings
-    .find({ ownerId, status: "ready" }, { projection: { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1 } })
+    .find(
+      { ownerId, status: "ready" },
+      { projection: { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1, actionItemCount: 1 } },
+    )
     .sort({ date: -1 })
     .toArray();
   return docs.map((d) => ({
@@ -267,6 +271,7 @@ export async function getMeetingList(ownerId: string | null): Promise<MeetingLis
     poster: d.poster,
     attendees: d.attendees ?? [],
     shareToken: d.shareToken,
+    actionItemCount: d.actionItemCount ?? 0,
   }));
 }
 

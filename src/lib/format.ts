@@ -29,6 +29,14 @@ export function formatDate(iso: string): string {
   });
 }
 
+/** "2026-09-24T10:00:00.000Z" -> "Sep 24, 2026 · 10:00 AM". Pinned to UTC, like formatDate, so hydration never mismatches. */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+  return `${date} · ${time}`;
+}
+
 export function initials(name: string): string {
   return name
     .split(/\s+/)

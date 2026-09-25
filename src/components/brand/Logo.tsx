@@ -36,3 +36,20 @@ export function Logo({ className = "" }: { className?: string }) {
     </span>
   );
 }
+
+/**
+ * The mark and wordmark in plain foreground color rather than the app's blue,
+ * for pages whose own palette reserves color for other things (an accent for
+ * buttons, say) and wants the brand mark to just follow their text color. Used
+ * by the marketing page and My Calls.
+ */
+export function Wordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-2 text-[17px] leading-none tracking-tight ${className}`}>
+      <LogoMark className="h-7 w-7 text-[#2B241C] dark:text-[#F2EDDD]" barClassName="fill-white dark:fill-[#101B33]" />
+      <span>
+        <span className="font-bold">Fathom</span> <span className="font-medium">Clone</span>
+      </span>
+    </span>
+  );
+}

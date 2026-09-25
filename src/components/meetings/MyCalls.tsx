@@ -55,14 +55,14 @@ export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
   return (
     <>
       <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">My Calls</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">My Calls.</h1>
         {/* Small screens only: on desktop the panel is already there. */}
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:hidden dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#2B241C]/20 px-3 py-2 text-sm font-medium hover:bg-[#2B241C]/5 lg:hidden dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/10"
         >
-          <SparkleIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <SparkleIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" />
           Ask Fathom
         </button>
       </div>
@@ -86,14 +86,14 @@ export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
       {hiddenDesktop && (
         <div
           data-ask-panel="hidden"
-          className={`fixed bottom-0 right-0 z-0 hidden w-10 justify-center border-l border-zinc-200 pt-3 lg:flex ${BELOW_HEADER} dark:border-zinc-800`}
+          className={`fixed bottom-0 right-0 z-0 hidden w-10 justify-center border-l border-[#2B241C]/10 pt-3 lg:flex ${BELOW_HEADER} dark:border-[#F2EDDD]/10`}
         >
           <button
             type="button"
             onClick={() => setHidden(false)}
             aria-label="Show Ask Fathom"
             title="Show Ask Fathom"
-            className="h-fit rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            className="h-fit rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
           >
             <PanelRightIcon className="h-4 w-4 -scale-x-100" />
           </button>

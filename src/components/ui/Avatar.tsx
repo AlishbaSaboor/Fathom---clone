@@ -26,31 +26,33 @@ export function Avatar({
   );
 }
 
-/** Overlapping avatars with a "+N" overflow chip. */
+/**
+ * Overlapping avatars with a "+N" overflow chip. The overlap is deliberately
+ * light (a 4px sliver, not a heavy stack): with only two letters of initials in
+ * each circle, a heavier overlap starts running initials into each other.
+ */
 export function AvatarStack({
   attendees,
   max = 4,
   size = "sm",
+  ringClassName = "ring-white dark:ring-zinc-900",
 }: {
   attendees: Attendee[];
   max?: number;
   size?: keyof typeof sizes;
+  /** The ring's color should match whatever the stack sits on; override when that isn't the default card background. */
+  ringClassName?: string;
 }) {
   const shown = attendees.slice(0, max);
   const extra = attendees.length - shown.length;
   return (
     <div className="flex items-center" role="img" aria-label={`${attendees.length} attendees`}>
       {shown.map((a, i) => (
-        <Avatar
-          key={a.id}
-          attendee={a}
-          size={size}
-          className={`ring-2 ring-white dark:ring-zinc-900 ${i > 0 ? "-ml-1" : ""}`}
-        />
+        <Avatar key={a.id} attendee={a} size={size} className={`ring-2 ${ringClassName} ${i > 0 ? "-ml-1" : ""}`} />
       ))}
       {extra > 0 && (
         <span
-          className={`-ml-1 inline-flex items-center justify-center rounded-full bg-zinc-200 font-medium text-zinc-700 ring-2 ring-white dark:bg-zinc-700 dark:text-zinc-100 dark:ring-zinc-900 ${sizes[size]}`}
+          className={`-ml-1 inline-flex items-center justify-center rounded-full bg-zinc-200 font-medium text-zinc-700 ring-2 dark:bg-zinc-700 dark:text-zinc-100 ${ringClassName} ${sizes[size]}`}
         >
           +{extra}
         </span>

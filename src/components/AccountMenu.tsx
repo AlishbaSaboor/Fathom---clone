@@ -31,7 +31,10 @@ const ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBef
   { id: "logout", label: "Logout", icon: <LogOutIcon className={icon} /> },
 ];
 
-export function AccountMenu() {
+const DEFAULT_TRIGGER_CLASS =
+  "flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
+
+export function AccountMenu({ triggerClassName = DEFAULT_TRIGGER_CLASS }: { triggerClassName?: string }) {
   const { show, toast } = useToast();
 
   const items: MenuItem[] = ENTRIES.map((e) => ({
@@ -46,7 +49,7 @@ export function AccountMenu() {
         ariaLabel="Account menu"
         align="right"
         menuClassName="w-60"
-        triggerClassName="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+        triggerClassName={triggerClassName}
         triggerChildren="DU"
       />
       {toast}

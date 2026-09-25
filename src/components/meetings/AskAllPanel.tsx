@@ -43,7 +43,11 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
         // Only link ids we know: the model must not be able to send the user somewhere invented.
         const href = hrefFor(cite[1]);
         return href ? (
-          <Link key={i} href={href} className="font-medium text-blue-700 underline decoration-dotted hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-950">
+          <Link
+            key={i}
+            href={href}
+            className="font-medium text-[#0F6E56] underline decoration-dotted hover:bg-[#0F6E56]/10 dark:text-[#3EC79A] dark:hover:bg-[#3EC79A]/15"
+          >
             {cite[2]}
           </Link>
         ) : (
@@ -71,7 +75,7 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
     <div className="space-y-2">
       {blocks.map((b, i) =>
         b.bullets ? (
-          <ul key={i} className="list-disc space-y-1 pl-5 marker:text-zinc-400">
+          <ul key={i} className="list-disc space-y-1 pl-5 marker:text-[#2B241C]/40 dark:marker:text-[#F2EDDD]/40">
             {b.lines.map((l, j) => (
               <li key={j}>{inline(l)}</li>
             ))}
@@ -213,10 +217,14 @@ export function AskAllPanel({
   const chips = (!empty && last?.role === "assistant" && !last.error && last.followUps?.length ? last.followUps : STOCK_SUGGESTIONS);
 
   return (
-    <aside aria-label="Ask Fathom" data-ask-panel={state === "open" ? "open" : undefined} className={`min-w-0 flex-col rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}>
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">
-          <SparkleIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+    <aside
+      aria-label="Ask Fathom"
+      data-ask-panel={state === "open" ? "open" : undefined}
+      className={`min-w-0 flex-col rounded-xl border border-[#2B241C]/15 bg-white dark:border-[#F2EDDD]/15 dark:bg-[#101B33] ${className}`}
+    >
+      <div className="flex items-center justify-between border-b border-[#2B241C]/10 px-4 py-3 dark:border-[#F2EDDD]/10">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+          <SparkleIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" />
           Ask Fathom
         </h2>
         {/* One button per breakpoint: on desktop hiding is remembered, on mobile it just closes the overlay. */}
@@ -225,7 +233,7 @@ export function AskAllPanel({
           onClick={onHideDesktop}
           aria-label="Hide Ask Fathom"
           title="Hide Ask Fathom"
-          className="hidden rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 lg:block dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="hidden rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] lg:block dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
         >
           <PanelRightIcon className="h-4 w-4" />
         </button>
@@ -233,14 +241,14 @@ export function AskAllPanel({
           type="button"
           onClick={onCloseMobile}
           aria-label="Close Ask Fathom"
-          className="rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 lg:hidden dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] lg:hidden dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
         >
           <XIcon className="h-5 w-5" />
         </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <p className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
+        <p className="rounded-lg border border-[#0F6E56]/20 bg-[#0F6E56]/10 p-3 text-xs leading-relaxed text-[#0F6E56] dark:border-[#3EC79A]/30 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A]">
           Ask across all {callCount} of your calls. Answers come from call summaries, not full transcripts, so they can
           miss detail. Open a call to ask about its transcript.
         </p>
@@ -248,7 +256,10 @@ export function AskAllPanel({
         <div className="mt-4 space-y-3" aria-live="polite">
           {messages.map((m, i) =>
             m.role === "user" ? (
-              <p key={i} className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-blue-600 px-3 py-2 text-sm text-white">
+              <p
+                key={i}
+                className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-[#0F6E56] px-3 py-2 text-sm text-white dark:bg-[#3EC79A] dark:text-[#101B33]"
+              >
                 {m.text}
               </p>
             ) : m.error ? (
@@ -269,21 +280,21 @@ export function AskAllPanel({
               </div>
             ) : (
               <div key={i} className="flex gap-2">
-                <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0F6E56]/10 text-[#0F6E56] dark:bg-[#3EC79A]/15 dark:text-[#3EC79A]">
                   <SparkleIcon className="h-3.5 w-3.5" />
                 </span>
                 <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
                   <div className="text-sm leading-relaxed">
                     <AnswerText text={m.text} hrefFor={(id) => hrefs.get(id)} />
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-2 border-t border-zinc-200 pt-2 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                  <div className="mt-2 flex items-center justify-between gap-2 border-t border-[#2B241C]/10 pt-2 text-xs text-[#2B241C]/60 dark:border-[#F2EDDD]/10 dark:text-[#F2EDDD]/60">
                     <button
                       type="button"
                       onClick={() => void copy(i)}
                       aria-label="Copy answer"
-                      className="inline-flex items-center gap-1 rounded p-1 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                      className="inline-flex items-center gap-1 rounded p-1 hover:bg-[#2B241C]/5 hover:text-[#2B241C] dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
                     >
-                      {copied === i ? <CheckIcon className="h-4 w-4 text-emerald-600" /> : <CopyIcon className="h-4 w-4" />}
+                      {copied === i ? <CheckIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" /> : <CopyIcon className="h-4 w-4" />}
                       {copied === i && <span>Copied</span>}
                     </button>
                     {m.analyzed !== undefined && (
@@ -298,11 +309,14 @@ export function AskAllPanel({
           )}
 
           {pending && (
-            <div className="flex w-fit items-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400" role="status">
+            <div
+              className="flex w-fit items-center gap-2 rounded-lg bg-[#2B241C]/5 px-3 py-2 text-sm text-[#2B241C]/70 dark:bg-[#F2EDDD]/10 dark:text-[#F2EDDD]/60"
+              role="status"
+            >
               <span className="flex gap-1" aria-hidden>
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-400" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.3s] dark:bg-[#F2EDDD]/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.15s] dark:bg-[#F2EDDD]/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 dark:bg-[#F2EDDD]/40" />
               </span>
               {slow ? "Still thinking. Gemini is busy right now…" : "Thinking…"}
             </div>
@@ -315,13 +329,17 @@ export function AskAllPanel({
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="max-w-[92%] rounded-md border border-zinc-300 px-3 py-1.5 text-right text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                  className="max-w-[92%] rounded-md border border-[#2B241C]/20 px-3 py-1.5 text-right text-xs hover:bg-[#2B241C]/5 dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/10"
                 >
                   {s}
                 </button>
               ))}
               {!empty && (
-                <button type="button" onClick={clear} className="text-xs font-medium text-zinc-500 underline hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100">
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="text-xs font-medium text-[#2B241C]/60 underline hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
+                >
                   Clear chat
                 </button>
               )}
@@ -332,7 +350,7 @@ export function AskAllPanel({
       </div>
 
       <form
-        className="m-3 rounded-lg border border-zinc-300 bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-900"
+        className="m-3 rounded-lg border border-[#2B241C]/20 bg-white focus-within:border-[#0F6E56] focus-within:ring-2 focus-within:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:focus-within:border-[#3EC79A] dark:focus-within:ring-[#3EC79A]/25"
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
@@ -351,16 +369,18 @@ export function AskAllPanel({
           rows={2}
           aria-label="Ask a question about your calls"
           placeholder="Ask anything…"
-          className="block w-full resize-none bg-transparent px-3 pt-2.5 text-sm outline-none placeholder:text-zinc-400"
+          className="block w-full resize-none bg-transparent px-3 pt-2.5 text-sm outline-none placeholder:text-[#2B241C]/40 dark:placeholder:text-[#F2EDDD]/40"
         />
         <div className="flex items-center justify-between px-2 pb-2">
           {/* The question always covers all of My Calls: a label, not a dead dropdown. */}
-          <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">My Calls</span>
+          <span className="rounded-md bg-[#2B241C]/5 px-2 py-1 text-xs text-[#2B241C]/70 dark:bg-[#F2EDDD]/10 dark:text-[#F2EDDD]/70">
+            My Calls
+          </span>
           <button
             type="submit"
             disabled={pending || !input.trim()}
             aria-label="Send question"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F6E56] text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#3EC79A] dark:text-[#101B33]"
           >
             <ArrowUpIcon className="h-4 w-4" />
           </button>

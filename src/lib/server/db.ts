@@ -46,6 +46,8 @@ export interface MeetingDoc {
   geminiFileName?: string;
   attendees?: Attendee[];
   summaries?: SummarySet;
+  /** Set once alongside `summaries`; the app never adds or removes an action item afterward, so this never goes stale. */
+  actionItemCount?: number;
   model?: string;
 }
 
