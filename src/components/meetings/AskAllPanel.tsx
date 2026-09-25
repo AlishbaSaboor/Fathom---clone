@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { AlertIcon, ArrowUpIcon, CheckIcon, CopyIcon, PanelRightIcon, SparkleIcon, XIcon } from "@/components/ui/icons";
+import { AlertIcon, ArrowUpIcon, CheckIcon, CopyIcon, SparkleIcon, XIcon } from "@/components/ui/icons";
 import { copyRich } from "@/lib/clipboard";
 import { MAX_QUESTION_CHARS } from "@/lib/recordings/limits";
 import type { ApiErrorBody, AskAllRequest, AskAllResponse } from "@/lib/recordings/types";
@@ -92,21 +92,22 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
  * Account-level Ask Fathom: a chat across every call, answered from summaries.
  * The server digests the visitor's own calls from the database (see
  * lib/digest.ts); only the question and the conversation are sent. The panel
- * stays mounted while hidden, so a conversation survives hiding and re-showing it.
+ * stays mounted while closed, so a conversation survives closing and reopening
+ * it. Opening and closing work the same way as the per-meeting panel on the
+ * meeting detail page: a floating button opens it, its own close button closes
+ * it — there is no separate desktop-only collapse behavior.
  */
 export function AskAllPanel({
   meetings,
   className,
-  state,
-  onHideDesktop,
-  onCloseMobile,
+  open,
+  onClose,
 }: {
   meetings: MeetingListItem[];
   className: string;
-  /** Read by the page layout (via the data attribute) to make room for the column. */
-  state: "open" | "hidden";
-  onHideDesktop: () => void;
-  onCloseMobile: () => void;
+  /** Read by the page layout (via the data attribute) to reserve room for the column. */
+  open: boolean;
+  onClose: () => void;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -219,7 +220,7 @@ export function AskAllPanel({
   return (
     <aside
       aria-label="Ask Fathom"
-      data-ask-panel={state === "open" ? "open" : undefined}
+      data-ask-panel={open ? "open" : undefined}
       className={`min-w-0 flex-col rounded-xl border border-[#2B241C]/15 bg-white dark:border-[#F2EDDD]/15 dark:bg-[#101B33] ${className}`}
     >
       <div className="flex items-center justify-between border-b border-[#2B241C]/10 px-4 py-3 dark:border-[#F2EDDD]/10">
@@ -227,21 +228,11 @@ export function AskAllPanel({
           <SparkleIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" />
           Ask Fathom
         </h2>
-        {/* One button per breakpoint: on desktop hiding is remembered, on mobile it just closes the overlay. */}
         <button
           type="button"
-          onClick={onHideDesktop}
-          aria-label="Hide Ask Fathom"
-          title="Hide Ask Fathom"
-          className="hidden rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] lg:block dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
-        >
-          <PanelRightIcon className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={onCloseMobile}
+          onClick={onClose}
           aria-label="Close Ask Fathom"
-          className="rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] lg:hidden dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
+          className="rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
         >
           <XIcon className="h-5 w-5" />
         </button>

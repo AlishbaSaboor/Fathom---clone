@@ -1,7 +1,8 @@
 // The app's own mark: a speech bubble (the conversation) holding three sound
 // bars (the recording). Drawn as plain geometry so it stays readable from a
-// 16px favicon up. The same shapes are in src/app/icon.svg, which needs literal
-// colors because a favicon has no page around it to inherit from.
+// 16px favicon up. The same shapes are in src/app/icon.svg (charcoal, matching
+// the rest of the redesign), which needs a literal color since a favicon has no
+// page around it to inherit from.
 
 /**
  * The bubble-and-bars mark. The bubble takes its color from `className`

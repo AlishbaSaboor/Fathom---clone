@@ -23,8 +23,8 @@ export default function CallsLayout({ children }: { children: React.ReactNode })
           <AccountMenu triggerClassName={ACCOUNT_TRIGGER} />
         </div>
       </header>
-      {/* Reserves room on the right for the fixed Ask Fathom column (or its slim collapsed rail); see MyCalls.tsx. */}
-      <div className="lg:has-[[data-ask-panel=open]]:[--ask-w:340px] lg:has-[[data-ask-panel=hidden]]:[--ask-w:2.5rem]">
+      {/* Reserves room on the right for the fixed Ask Fathom column when it's open; see MyCalls.tsx. */}
+      <div className="lg:has-[[data-ask-panel=open]]:[--ask-w:340px]">
         <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:pr-[calc(1.5rem+max(0px,var(--ask-w,0px)-max(0px,(100%-72rem)/2)))]">
           {children}
         </main>
