@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { PricingCards } from "@/components/pricing/PricingCards";
+import { getUser } from "@/lib/server/auth";
 
 export const metadata: Metadata = {
   title: "Pricing | Fathom Clone",
@@ -12,8 +13,12 @@ export const metadata: Metadata = {
  * The pricing page: reachable from the landing page (logged out) and from the
  * account menu (inside the app), so it uses the landing page's own neutral
  * header/footer rather than the app shell's — it isn't tied to being signed in.
+ * Whether a plan button goes into the app or to /login depends on session
+ * state, so this reads it (see PricingCards for what that changes).
  */
-export default function PricingPage() {
+export default async function PricingPage() {
+  const user = await getUser();
+
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#2B241C] dark:bg-[#101B33] dark:text-[#F2EDDD]">
       <LandingHeader />
@@ -27,7 +32,7 @@ export default function PricingPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-          <PricingCards />
+          <PricingCards loggedIn={!!user} />
         </section>
       </main>
 
