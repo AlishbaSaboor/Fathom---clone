@@ -10,7 +10,7 @@ import { getUser } from "@/lib/server/auth";
 export default async function UploadLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser();
   return (
-    <div className="min-h-screen bg-white text-[#2B241C] dark:bg-[#101B33] dark:text-[#F2EDDD]">
+    <div className="min-h-screen bg-[#FAF9F5] text-[#201D1A] dark:bg-[#0B0F19] dark:text-[#F3F4F6] transition-colors">
       <AppHeader user={user} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>

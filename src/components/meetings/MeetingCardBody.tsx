@@ -15,7 +15,7 @@ export function MeetingCardBody({
 
   return (
     <>
-      <div className="relative flex h-36 w-full items-center justify-center overflow-hidden bg-black/90">
+      <div className="relative flex aspect-video min-h-[180px] w-full items-center justify-center overflow-hidden bg-black/90">
         <VideoThumbnail
           url={isVideo ? meeting.media?.url : undefined}
           poster={meeting.poster}

@@ -16,7 +16,7 @@ export function GoogleButton({ from }: { from?: string }) {
   return (
     <a
       href={href}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2B241C]/20 bg-white px-4 py-2.5 text-sm font-semibold text-[#2B241C] transition hover:bg-[#2B241C]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:text-[#F2EDDD] dark:hover:bg-[#F2EDDD]/5"
+      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#201D1A]/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#201D1A] transition hover:bg-[#201D1A]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.04] dark:text-[#F3F4F6] dark:hover:bg-white/10"
     >
       <GoogleG className="h-4 w-4" />
       Continue with Google

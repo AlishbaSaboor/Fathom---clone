@@ -28,14 +28,14 @@ export default async function SharedPlaylistPage({ params }: PageProps<"/share/p
   if (!playlist) notFound();
 
   return (
-    <div className="text-[#2B241C] dark:text-[#F2EDDD]">
-      <h1 className="text-2xl font-semibold tracking-tight">{playlist.name}</h1>
-      <p className="mt-1 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+    <div className="text-[#201D1A] dark:text-[#F3F4F6]">
+      <h1 className="text-2xl font-bold tracking-tight text-[#201D1A] dark:text-[#F3F4F6] sm:text-3xl">{playlist.name}</h1>
+      <p className="mt-1 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
         {playlist.meetings.length} {playlist.meetings.length === 1 ? "recording" : "recordings"}
       </p>
 
       {playlist.meetings.length === 0 ? (
-        <p className="mt-10 rounded-2xl border border-dashed border-[#2B241C]/20 p-10 text-center text-sm text-[#2B241C]/60 dark:border-[#F2EDDD]/20 dark:text-[#F2EDDD]/60">
+        <p className="mt-10 rounded-2xl border border-dashed border-[#201D1A]/20 p-10 text-center text-sm text-[#201D1A]/60 dark:border-white/20 dark:text-[#F3F4F6]/60">
           This playlist is empty.
         </p>
       ) : (
@@ -44,7 +44,7 @@ export default async function SharedPlaylistPage({ params }: PageProps<"/share/p
             <li key={meeting.id} className="flex">
               <Link
                 href={`/share/${meeting.shareToken}`}
-                className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#2B241C]/15 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/15 dark:bg-[#101B33]"
+                className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#201D1A]/10 bg-white shadow-xs transition hover:border-[#201D1A]/20 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
               >
                 <MeetingCardBody meeting={meeting} />
               </Link>

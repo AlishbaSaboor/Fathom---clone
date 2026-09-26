@@ -4,19 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
 import {
-  BookIcon,
-  CodeIcon,
-  DownloadIcon,
+  CreditCardIcon,
   HelpCircleIcon,
   LogOutIcon,
-  VideoIcon,
+  ShieldCheckIcon,
 } from "@/components/ui/icons";
-import { useToast } from "@/components/ui/Toast";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 
-// Everything below Logout except FAQs and Privacy Policy is still out of scope
-// for this build: honest stubs, laid out like Fathom's own menu (help links,
-// legal links, then app actions).
 const icon = "h-4 w-4 text-zinc-500 dark:text-zinc-400";
 
 const DEFAULT_TRIGGER_CLASS =
@@ -40,7 +34,6 @@ export function AccountMenu({
   triggerClassName?: string;
 }) {
   const router = useRouter();
-  const { show, toast } = useToast();
   const [loggingOut, setLoggingOut] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
@@ -55,23 +48,36 @@ export function AccountMenu({
     }
   }
 
-  const stub = () => show("Not part of this build", "info");
-
   const items: MenuItem[] = [
     ...(user
       ? [{ id: "identity", label: user.name, hint: user.email, disabled: true, onSelect: () => {} } satisfies MenuItem]
       : []),
-    { id: "pricing", label: "Pricing", separatorBefore: true, onSelect: () => router.push("/pricing") },
-    { id: "start-test-call", label: "Start Test Call", icon: <VideoIcon className={icon} />, onSelect: stub },
-    { id: "tutorial", label: "Tutorial", icon: <BookIcon className={icon} />, onSelect: stub },
-    { id: "faqs", label: "FAQs", icon: <HelpCircleIcon className={icon} />, onSelect: () => router.push("/#faq") },
-    { id: "developers", label: "Developers", icon: <CodeIcon className={icon} />, onSelect: stub },
-    { id: "privacy", label: "Privacy Policy", separatorBefore: true, onSelect: () => setPrivacyOpen(true) },
-    { id: "terms", label: "Terms of Service", onSelect: stub },
-    { id: "security", label: "Security & Compliance", onSelect: stub },
-    { id: "status", label: "System Status", onSelect: stub },
-    { id: "download-app", label: "Download App", icon: <DownloadIcon className={icon} />, separatorBefore: true, onSelect: stub },
-    { id: "logout", label: loggingOut ? "Logging out…" : "Logout", icon: <LogOutIcon className={icon} />, separatorBefore: true, onSelect: logout },
+    {
+      id: "pricing",
+      label: "Pricing",
+      icon: <CreditCardIcon className={icon} />,
+      separatorBefore: true,
+      onSelect: () => router.push("/pricing"),
+    },
+    {
+      id: "faqs",
+      label: "FAQs",
+      icon: <HelpCircleIcon className={icon} />,
+      onSelect: () => router.push("/#faq"),
+    },
+    {
+      id: "privacy",
+      label: "Privacy Policy",
+      icon: <ShieldCheckIcon className={icon} />,
+      onSelect: () => setPrivacyOpen(true),
+    },
+    {
+      id: "logout",
+      label: loggingOut ? "Logging out…" : "Logout",
+      icon: <LogOutIcon className={icon} />,
+      separatorBefore: true,
+      onSelect: logout,
+    },
   ];
 
   return (
@@ -84,8 +90,8 @@ export function AccountMenu({
         triggerClassName={triggerClassName}
         triggerChildren={user ? initials(user.name) : "?"}
       />
-      {toast}
       <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </>
   );
 }
+

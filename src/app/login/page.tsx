@@ -30,10 +30,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     >
       <div className="space-y-4">
         <GoogleButton from={from} />
-        <div className="flex items-center gap-3 text-xs text-[#2B241C]/50 dark:text-[#F2EDDD]/50">
-          <span className="h-px flex-1 bg-[#2B241C]/15 dark:bg-[#F2EDDD]/15" />
+        <div className="flex items-center gap-3 text-xs text-[#201D1A]/50 dark:text-[#F3F4F6]/50">
+          <span className="h-px flex-1 bg-[#201D1A]/10 dark:bg-white/10" />
           or
-          <span className="h-px flex-1 bg-[#2B241C]/15 dark:bg-[#F2EDDD]/15" />
+          <span className="h-px flex-1 bg-[#201D1A]/10 dark:bg-white/10" />
         </div>
         <LoginForm from={from} initialError={errorParam} />
       </div>

@@ -6,10 +6,10 @@ import type { ApiErrorBody } from "@/lib/recordings/types";
 import { AlertIcon } from "@/components/ui/icons";
 
 const INPUT =
-  "w-full rounded-lg border border-[#2B241C]/20 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-[#2B241C]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:placeholder:text-[#F2EDDD]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/25";
-const LABEL = "mb-1.5 block text-sm font-medium";
+  "w-full rounded-lg border border-[#201D1A]/20 bg-white px-3 py-2.5 text-sm text-[#201D1A] outline-none placeholder:text-[#201D1A]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/20 dark:border-white/15 dark:bg-white/[0.06] dark:text-[#F3F4F6] dark:placeholder:text-[#F3F4F6]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/20";
+const LABEL = "mb-1.5 block text-sm font-medium text-[#201D1A] dark:text-[#F3F4F6]";
 const SUBMIT =
-  "w-full rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]";
+  "w-full rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b] dark:focus-visible:outline-[#3EC79A]";
 
 export function LoginForm({ from, initialError }: { from: string; initialError?: string }) {
   const router = useRouter();

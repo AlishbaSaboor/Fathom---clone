@@ -35,12 +35,12 @@ export default async function PlaylistPage({ params, searchParams }: PageProps<"
   const availableMeetings = allMeetings.filter((m) => !inPlaylist.has(m.id));
 
   return (
-    <div className="min-h-screen bg-white text-[#2B241C] dark:bg-[#101B33] dark:text-[#F2EDDD]">
+    <div className="min-h-screen bg-[#FAF9F5] text-[#201D1A] dark:bg-[#0B0F19] dark:text-[#F3F4F6] transition-colors">
       <AppHeader user={user} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <Link
           href="/playlists"
-          className="mb-4 inline-flex items-center gap-1 text-sm text-[#2B241C]/60 hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-[#201D1A]/60 hover:text-[#201D1A] dark:text-[#F3F4F6]/60 dark:hover:text-white transition-colors"
         >
           <span aria-hidden>←</span> Playlists
         </Link>

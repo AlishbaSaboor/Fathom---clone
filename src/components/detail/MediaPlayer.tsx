@@ -37,7 +37,7 @@ export function MediaPlayer({
 
   if (kind === "video") {
     return (
-      <div className="relative flex w-full justify-center bg-black max-h-[300px] sm:max-h-[340px] overflow-hidden">
+      <div className="relative flex w-full justify-center bg-black aspect-video max-h-[440px] sm:max-h-[500px] overflow-hidden">
         <video
           ref={el as React.RefObject<HTMLVideoElement>}
           src={url}
@@ -45,7 +45,7 @@ export function MediaPlayer({
           playsInline
           preload="metadata"
           onTimeUpdate={(e) => onTime?.(e.currentTarget.currentTime)}
-          className="max-h-[300px] sm:max-h-[340px] w-full object-contain"
+          className="h-full w-full max-h-[440px] sm:max-h-[500px] object-contain"
           aria-label="Recording"
         />
       </div>
