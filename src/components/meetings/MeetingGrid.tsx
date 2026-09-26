@@ -4,11 +4,19 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SearchIcon, UploadIcon, XIcon } from "@/components/ui/icons";
 import { searchMeetings, type MeetingMatch } from "@/lib/search";
-import type { MeetingListItem } from "@/types/meeting";
+import type { MeetingListItem, PlaylistSummary } from "@/types/meeting";
 import { MeetingCard } from "./MeetingCard";
 
 /** `narrow`: a side panel takes the right of the page, so the cards drop from three columns to two. */
-export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingListItem[]; narrow?: boolean }) {
+export function MeetingGrid({
+  meetings,
+  playlists,
+  narrow = false,
+}: {
+  meetings: MeetingListItem[];
+  playlists: PlaylistSummary[];
+  narrow?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const results = useMemo(() => searchMeetings(meetings, query), [meetings, query]);
   const searching = query.trim().length > 0;
@@ -68,7 +76,7 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
         </div>
       ) : results.length > 0 ? (
         <div className="mt-6">
-          <CardList matches={results} narrow={narrow} />
+          <CardList matches={results} playlists={playlists} narrow={narrow} />
         </div>
       ) : (
         <div className="mt-10 rounded-2xl border border-dashed border-[#2B241C]/25 p-10 text-center dark:border-[#F2EDDD]/25">
@@ -89,12 +97,12 @@ export function MeetingGrid({ meetings, narrow = false }: { meetings: MeetingLis
   );
 }
 
-function CardList({ matches, narrow }: { matches: MeetingMatch[]; narrow: boolean }) {
+function CardList({ matches, playlists, narrow }: { matches: MeetingMatch[]; playlists: PlaylistSummary[]; narrow: boolean }) {
   return (
     <ul className={`grid gap-5 sm:grid-cols-2 ${narrow ? "2xl:grid-cols-3" : "lg:grid-cols-3"}`}>
       {matches.map((match) => (
         <li key={match.meeting.id} className="flex">
-          <MeetingCard match={match} />
+          <MeetingCard match={match} playlists={playlists} />
         </li>
       ))}
     </ul>

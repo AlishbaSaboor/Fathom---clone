@@ -84,3 +84,20 @@ export type MeetingListItem = Pick<
   /** Saved once, when the recording finishes analysis; action items are never added or removed afterward. */
   actionItemCount: number;
 };
+
+/**
+ * What My Calls needs to know about the visitor's playlists, to offer "Add to
+ * playlist" per recording and to render the Playlists page. Declared here
+ * (not in lib/playlists.ts, which is server-only) so client components can
+ * import the type without pulling in server code.
+ */
+export interface PlaylistSummary {
+  id: string;
+  name: string;
+  /** Which meetings are already in it, so a checkbox can start pre-checked. */
+  meetingIds: string[];
+  /** Opaque token in the public share link. */
+  shareToken: string;
+  /** ISO 8601. */
+  createdAt: string;
+}

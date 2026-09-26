@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AskFathomButton } from "@/components/AskFathomButton";
-import type { MeetingListItem } from "@/types/meeting";
+import type { MeetingListItem, PlaylistSummary } from "@/types/meeting";
 import { AskAllPanel } from "./AskAllPanel";
 import { MeetingGrid } from "./MeetingGrid";
 
@@ -20,14 +20,14 @@ import { MeetingGrid } from "./MeetingGrid";
 // Just under the app header: its 3.5rem row + the 1px border.
 const BELOW_HEADER = "lg:top-[calc(3.5rem+1px)]";
 
-export function MyCalls({ meetings }: { meetings: MeetingListItem[] }) {
+export function MyCalls({ meetings, playlists }: { meetings: MeetingListItem[]; playlists: PlaylistSummary[] }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">My Calls.</h1>
 
-      <MeetingGrid meetings={meetings} narrow={open} />
+      <MeetingGrid meetings={meetings} playlists={playlists} narrow={open} />
 
       <AskAllPanel
         meetings={meetings}

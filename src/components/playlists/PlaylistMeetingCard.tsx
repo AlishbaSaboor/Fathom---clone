@@ -2,45 +2,39 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { MeetingCardBody } from "@/components/meetings/MeetingCardBody";
 import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
-import { LinkIcon, MoreVerticalIcon, PlaylistIcon, TrashIcon } from "@/components/ui/icons";
+import { LinkIcon, MoreVerticalIcon, XIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { copyRich } from "@/lib/clipboard";
 import type { ApiErrorBody } from "@/lib/recordings/types";
-import type { MeetingMatch } from "@/lib/search";
-import type { PlaylistSummary } from "@/types/meeting";
-import { AddToPlaylistModal } from "@/components/playlists/AddToPlaylistModal";
-import { MeetingCardBody } from "./MeetingCardBody";
+import type { MeetingListItem } from "@/types/meeting";
 
-export function MeetingCard({ match, playlists }: { match: MeetingMatch; playlists: PlaylistSummary[] }) {
-  const { meeting, matchedAttendees } = match;
+/** A recording tile on a playlist's own detail page: same visuals as My Calls' MeetingCard, but "Remove from Playlist" instead of "Delete" — this never touches the recording itself. */
+export function PlaylistMeetingCard({ playlistId, meeting }: { playlistId: string; meeting: MeetingListItem }) {
   const router = useRouter();
   const { show, toast } = useToast();
-  const [addOpen, setAddOpen] = useState(false);
 
   async function copyShareLink() {
     const ok = await copyRich(`${window.location.origin}/share/${meeting.shareToken}`);
     show(ok ? "Share link copied" : "Couldn't copy the link", ok ? "success" : "error");
   }
 
-  const menu: MenuItem[] = [
-    { id: "share", label: "Copy Share Link", icon: <LinkIcon className="h-4 w-4" />, onSelect: () => void copyShareLink() },
-    { id: "add-to-playlist", label: "Add to Playlist", icon: <PlaylistIcon className="h-4 w-4" />, onSelect: () => setAddOpen(true) },
-    { id: "delete", label: "Delete", icon: <TrashIcon className="h-4 w-4" />, danger: true, separatorBefore: true, onSelect: () => void remove() },
-  ];
-
   async function remove() {
-    if (!window.confirm(`Delete "${meeting.title}"? The recording, its transcript and its share link are permanently removed and can't be recovered.`)) return;
     try {
-      const res = await fetch(`/api/meetings/${meeting.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/playlists/${playlistId}/meetings/${meeting.id}`, { method: "DELETE" });
       if (res.ok) return router.refresh();
       const message = ((await res.json().catch(() => null)) as ApiErrorBody | null)?.error.message;
-      show(message ?? "Couldn't delete that recording. Please try again.", "error");
+      show(message ?? "Couldn't remove that recording. Please try again.", "error");
     } catch {
       show("Couldn't reach the server. Check your connection and try again.", "error");
     }
   }
+
+  const menu: MenuItem[] = [
+    { id: "share", label: "Copy Share Link", icon: <LinkIcon className="h-4 w-4" />, onSelect: () => void copyShareLink() },
+    { id: "remove", label: "Remove from Playlist", icon: <XIcon className="h-4 w-4" />, danger: true, separatorBefore: true, onSelect: () => void remove() },
+  ];
 
   return (
     <div className="group relative flex w-full">
@@ -48,23 +42,20 @@ export function MeetingCard({ match, playlists }: { match: MeetingMatch; playlis
         href={`/meetings/${meeting.id}`}
         className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#2B241C]/15 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/15 dark:bg-[#101B33]"
       >
-        <MeetingCardBody meeting={meeting} matchedAttendees={matchedAttendees} />
+        <MeetingCardBody meeting={meeting} />
       </Link>
 
-      {/* A sibling of the link, not inside it: a button can't be nested in an anchor. */}
       <div className="absolute right-2 top-2 z-10">
         <DropdownMenu
           items={menu}
           ariaLabel={`More actions for ${meeting.title}`}
           align="right"
-          menuClassName="w-48"
+          menuClassName="w-52"
           triggerClassName="flex h-8 w-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition hover:bg-black/75 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100"
           triggerChildren={<MoreVerticalIcon className="h-4 w-4" />}
         />
       </div>
       {toast}
-
-      <AddToPlaylistModal open={addOpen} onClose={() => setAddOpen(false)} meetingId={meeting.id} playlists={playlists} />
     </div>
   );
 }

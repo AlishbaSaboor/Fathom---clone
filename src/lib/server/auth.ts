@@ -102,5 +102,5 @@ export async function claimAnonymousMeetings(userId: string): Promise<void> {
 
 /** Restricts a post-login redirect target to a real in-app path, never an absolute or protocol-relative URL (no open redirect). */
 export function isSafeRedirect(path: string | null | undefined): path is string {
-  return !!path && /^\/(calls|upload|meetings)(\/|$)/.test(path);
+  return !!path && /^\/(calls|upload|meetings|playlists)(\/|$)/.test(path);
 }

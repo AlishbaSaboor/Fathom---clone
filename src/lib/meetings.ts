@@ -252,18 +252,9 @@ async function load(doc: MeetingDoc | null): Promise<Meeting | null> {
   return assemble(doc, transcript?.segments ?? [], items);
 }
 
-/** The owner's finished meetings, newest first. Transcripts are left out. */
-export async function getMeetingList(ownerId: string | null): Promise<MeetingListItem[]> {
-  if (!ownerId) return [];
-  const c = await collections();
-  const docs = await c.meetings
-    .find(
-      { ownerId, status: "ready" },
-      { projection: { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1, actionItemCount: 1 } },
-    )
-    .sort({ date: -1 })
-    .toArray();
-  return docs.map((d) => ({
+/** The list-page projection of a meeting document. Shared with lib/playlists.ts, which resolves its membership against the same fields. */
+export function toMeetingListItem(d: Pick<MeetingDoc, "_id" | "title" | "date" | "durationSec" | "poster" | "attendees" | "shareToken" | "actionItemCount">): MeetingListItem {
+  return {
     id: d._id,
     title: d.title,
     date: d.date,
@@ -272,7 +263,27 @@ export async function getMeetingList(ownerId: string | null): Promise<MeetingLis
     attendees: d.attendees ?? [],
     shareToken: d.shareToken,
     actionItemCount: d.actionItemCount ?? 0,
-  }));
+  };
+}
+
+const LIST_PROJECTION = { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1, actionItemCount: 1 } as const;
+
+/** The owner's finished meetings, newest first. Transcripts are left out. */
+export async function getMeetingList(ownerId: string | null): Promise<MeetingListItem[]> {
+  if (!ownerId) return [];
+  const c = await collections();
+  const docs = await c.meetings.find({ ownerId, status: "ready" }, { projection: LIST_PROJECTION }).sort({ date: -1 }).toArray();
+  return docs.map(toMeetingListItem);
+}
+
+/** The owner's finished meetings matching the given ids, in no particular order. Used to resolve a playlist's membership. */
+export async function getMeetingListItemsByIds(ownerId: string, ids: string[]): Promise<MeetingListItem[]> {
+  if (ids.length === 0) return [];
+  const c = await collections();
+  const docs = await c.meetings
+    .find({ _id: { $in: ids }, ownerId, status: "ready" }, { projection: LIST_PROJECTION })
+    .toArray();
+  return docs.map(toMeetingListItem);
 }
 
 export async function getMeetingForOwner(id: string, ownerId: string | null): Promise<Meeting | null> {

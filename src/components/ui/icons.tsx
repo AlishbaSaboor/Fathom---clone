@@ -222,6 +222,24 @@ export function CodeIcon({ className }: IconProps) {
   );
 }
 
+export function PlusIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+export function PlaylistIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 6h12M4 12h12M4 18h7" />
+      <circle cx="18" cy="17" r="2.5" />
+      <path d="M20.5 17V8l-3 1" />
+    </svg>
+  );
+}
+
 export function LogOutIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className}>

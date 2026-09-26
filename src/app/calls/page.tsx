@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MyCalls } from "@/components/meetings/MyCalls";
 import { getMeetingList } from "@/lib/meetings";
+import { getPlaylistsForOwner } from "@/lib/playlists";
 import { requireUser } from "@/lib/server/auth";
 
 export const metadata: Metadata = { title: "My Calls | Fathom Clone" };
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "My Calls | Fathom Clone" };
 // does this too, but a page must never rely on that alone (see lib/server/auth.ts).
 export default async function MyCallsPage() {
   const user = await requireUser();
-  const meetings = await getMeetingList(user.id);
+  const [meetings, playlists] = await Promise.all([getMeetingList(user.id), getPlaylistsForOwner(user.id)]);
 
-  return <MyCalls meetings={meetings} />;
+  return <MyCalls meetings={meetings} playlists={playlists} />;
 }

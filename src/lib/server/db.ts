@@ -19,6 +19,9 @@ import type { Attendee, SummarySet, TranscriptSegment } from "@/types/meeting";
 //   sessions     one per signed-in session (see lib/server/auth.ts). The cookie holds
 //                only a signed reference to a row here, so logout (or a future "log out
 //                everywhere") can really revoke it, not just clear the browser's cookie.
+//   playlists    one per playlist (see lib/playlists.ts). Holds only membership (meeting
+//                ids); titles/posters/etc. are always read live from meetings, so a
+//                deleted recording just drops out rather than needing active cleanup.
 
 export interface MeetingDoc {
   /** The meeting id used in the app's own URLs. */
@@ -93,12 +96,24 @@ export interface SessionDoc {
   expiresAt: Date;
 }
 
+export interface PlaylistDoc {
+  _id: string;
+  ownerId: string;
+  name: string;
+  /** Membership only; resolved against `meetings` on every read. */
+  meetingIds: string[];
+  /** Opaque token in the public share link (see /share/playlists/[token]). */
+  shareToken: string;
+  createdAt: Date;
+}
+
 export interface Collections {
   meetings: Collection<MeetingDoc>;
   transcripts: Collection<TranscriptDoc>;
   actionItems: Collection<ActionItemDoc>;
   users: Collection<UserDoc>;
   sessions: Collection<SessionDoc>;
+  playlists: Collection<PlaylistDoc>;
 }
 
 // One client per server instance, reused across requests. attachDatabasePool
@@ -142,6 +157,7 @@ export async function collections(): Promise<Collections> {
       actionItems: db.collection<ActionItemDoc>("actionItems"),
       users: db.collection<UserDoc>("users"),
       sessions: db.collection<SessionDoc>("sessions"),
+      playlists: db.collection<PlaylistDoc>("playlists"),
     };
     g.__mongoIndexes ??= Promise.all([
       c.meetings.createIndex({ ownerId: 1, status: 1, date: -1 }),
@@ -153,6 +169,8 @@ export async function collections(): Promise<Collections> {
       c.users.createIndex({ googleId: 1 }, { unique: true, sparse: true }),
       // TTL index: Mongo removes a session on its own once expired, so logged-out sessions don't pile up.
       c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      c.playlists.createIndex({ ownerId: 1, createdAt: -1 }),
+      c.playlists.createIndex({ shareToken: 1 }, { unique: true }),
     ]).then(() => undefined);
     await g.__mongoIndexes.catch((e) => {
       g.__mongoIndexes = undefined;
