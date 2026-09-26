@@ -11,22 +11,19 @@ export const metadata: Metadata = {
 
 /**
  * The pricing page: reachable from the landing page (logged out) and from the
- * account menu (inside the app), so it uses the landing page's own neutral
- * header/footer rather than the app shell's — it isn't tied to being signed in.
- * Whether a plan button goes into the app or to /login depends on session
- * state, so this reads it (see PricingCards for what that changes).
+ * account menu (inside the app). Uses consistent warm alabaster & obsidian styling.
  */
 export default async function PricingPage() {
   const user = await getUser();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#2B241C] dark:bg-[#101B33] dark:text-[#F2EDDD]">
+    <div className="flex min-h-screen flex-col bg-[#FAF9F5] text-[#201D1A] dark:bg-[#0B0F19] dark:text-[#F3F4F6]">
       <LandingHeader />
 
       <main className="flex-1">
-        <section className="mx-auto max-w-4xl px-4 pb-4 pt-20 text-center sm:px-6 sm:pt-28">
+        <section className="mx-auto max-w-4xl px-4 pb-4 pt-16 text-center sm:px-6 sm:pt-24">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Pricing.</h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+          <p className="mx-auto mt-4 max-w-xl text-lg text-[#201D1A]/70 dark:text-[#F3F4F6]/70">
             Start free. Upgrade when your team needs more.
           </p>
         </section>

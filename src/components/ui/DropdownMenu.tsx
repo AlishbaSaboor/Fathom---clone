@@ -94,21 +94,21 @@ export function DropdownMenu({
         <div
           role="menu"
           aria-label={ariaLabel}
-          className={`absolute z-30 mt-2 overflow-hidden rounded-lg border border-zinc-200 bg-white p-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-900 ${
+          className={`absolute z-30 mt-2 overflow-hidden rounded-xl border border-[#201D1A]/10 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#111827] ${
             align === "right" ? "right-0" : "left-0"
           } ${menuClassName}`}
         >
           {items.map((item, i) => (
             <Fragment key={item.id}>
-              {item.separatorBefore && i > 0 && <hr role="separator" className="my-1 border-zinc-200 dark:border-zinc-700" />}
+              {item.separatorBefore && i > 0 && <hr role="separator" className="my-1 border-[#201D1A]/8 dark:border-white/10" />}
               <button
                 type="button"
                 role="menuitem"
                 disabled={item.disabled}
                 autoFocus={i === items.findIndex((x) => !x.disabled)}
                 onClick={() => choose(item)}
-                className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-zinc-100 focus-visible:bg-zinc-100 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent dark:hover:bg-zinc-800 dark:focus-visible:bg-zinc-800 ${
-                  item.danger ? "text-rose-600 dark:text-rose-400" : ""
+                className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-[#201D1A]/90 transition-colors hover:bg-[#201D1A]/5 focus-visible:bg-[#201D1A]/5 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent dark:text-[#F3F4F6]/90 dark:hover:bg-white/5 dark:focus-visible:bg-white/5 ${
+                  item.danger ? "text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30" : ""
                 }`}
               >
                 {item.icon && <span className="flex h-5 w-5 shrink-0 items-center justify-center">{item.icon}</span>}

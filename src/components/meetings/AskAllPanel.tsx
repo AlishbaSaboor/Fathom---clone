@@ -17,30 +17,25 @@ const STOCK_SUGGESTIONS = [
 interface Message {
   role: "user" | "assistant";
   text: string;
-  /** An error bubble: shown in red with a retry, and not sent back as conversation history. */
   error?: boolean;
   followUps?: string[];
   analyzed?: number;
   seconds?: number;
 }
 
-// Reads the clock outside the component so the render-purity lint rule sees only event-handler use.
 const clock = () => Date.now();
 
 const CITATION = /\[\[([\w-]+)\|([^\]]+)\]\]/g;
 
-/** Answer text as plain text: citations become just the call title. Used for Copy. */
 const plainText = (text: string) => text.replace(CITATION, "$2").replace(/\*\*([^*]+)\*\*/g, "$1");
 
-/** Renders an answer: "- " lines as bullets, **bold**, and [[id|Title]] citations as links to that call. */
 function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => string | undefined }) {
   const inline = (line: string) =>
     line.split(/(\*\*[^*]+\*\*|\[\[[\w-]+\|[^\]]+\]\])/g).map((part, i) => {
       const bold = part.match(/^\*\*(.+)\*\*$/);
-      if (bold) return <strong key={i}>{bold[1]}</strong>;
+      if (bold) return <strong key={i} className="font-semibold text-[#201D1A] dark:text-[#F3F4F6]">{bold[1]}</strong>;
       const cite = part.match(/^\[\[([\w-]+)\|([^\]]+)\]\]$/);
       if (cite) {
-        // Only link ids we know: the model must not be able to send the user somewhere invented.
         const href = hrefFor(cite[1]);
         return href ? (
           <Link
@@ -75,7 +70,7 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
     <div className="space-y-2">
       {blocks.map((b, i) =>
         b.bullets ? (
-          <ul key={i} className="list-disc space-y-1 pl-5 marker:text-[#2B241C]/40 dark:marker:text-[#F2EDDD]/40">
+          <ul key={i} className="list-disc space-y-1 pl-4 marker:text-[#0F6E56]/50 dark:marker:text-[#3EC79A]/50">
             {b.lines.map((l, j) => (
               <li key={j}>{inline(l)}</li>
             ))}
@@ -88,43 +83,36 @@ function AnswerText({ text, hrefFor }: { text: string; hrefFor: (id: string) => 
   );
 }
 
-/**
- * Account-level Ask Fathom: a chat across every call, answered from summaries.
- * The server digests the visitor's own calls from the database (see
- * lib/digest.ts); only the question and the conversation are sent. The panel
- * stays mounted while closed, so a conversation survives closing and reopening
- * it. Opening and closing work the same way as the per-meeting panel on the
- * meeting detail page: a floating button opens it, its own close button closes
- * it — there is no separate desktop-only collapse behavior.
- */
 export function AskAllPanel({
   meetings,
-  className,
-  open,
   onClose,
+  open,
+  className = "",
 }: {
   meetings: MeetingListItem[];
-  className: string;
-  /** Read by the page layout (via the data attribute) to reserve room for the column. */
-  open: boolean;
   onClose: () => void;
+  open: boolean;
+  className?: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [slow, setSlow] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
+  const copyTimer = useRef<number | undefined>(undefined);
   const abort = useRef<AbortController | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
 
-  // Where a cited call lives: only the visitor's own calls can be linked to.
   const hrefs = useMemo(() => new Map(meetings.map((m) => [m.id, `/meetings/${m.id}`])), [meetings]);
-  const callCount = meetings.length;
+
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [messages, pending]);
+
   useEffect(() => () => abort.current?.abort(), []);
+
   useEffect(() => {
     if (!pending) return;
     const t = window.setTimeout(() => setSlow(true), 15_000);
@@ -134,22 +122,37 @@ export function AskAllPanel({
     };
   }, [pending]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  async function copy(index: number) {
+    const text = messages[index]?.text;
+    if (!text) return;
+    await copyRich(plainText(text));
+    setCopied(index);
+    window.clearTimeout(copyTimer.current);
+    copyTimer.current = window.setTimeout(() => setCopied(null), 1800);
+  }
+
   async function ask(question: string, history: Message[]) {
     const q = question.trim();
     if (!q || pending) return;
     setPending(true);
-    const started = clock();
+
     const ac = new AbortController();
     abort.current = ac;
-
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const body: AskAllRequest = {
       question: q,
-      today,
-      history: history.filter((m) => !m.error).map((m) => ({ role: m.role, text: plainText(m.text) })),
+      history: history.filter((m) => !m.error).map((m) => ({ role: m.role, text: m.text })),
     };
 
+    const start = clock();
     try {
       const res = await fetch("/api/ask-all", {
         method: "POST",
@@ -157,6 +160,7 @@ export function AskAllPanel({
         body: JSON.stringify(body),
         signal: ac.signal,
       });
+      const elapsed = Math.round((clock() - start) / 100) / 10;
       if (!res.ok) {
         let message = "Something went wrong. Please try again.";
         try {
@@ -169,7 +173,7 @@ export function AskAllPanel({
         const { answer, followUps, analyzed } = (await res.json()) as AskAllResponse;
         setMessages((m) => [
           ...m,
-          { role: "assistant", text: answer, followUps, analyzed, seconds: Math.max(1, Math.round((clock() - started) / 1000)) },
+          { role: "assistant", text: answer, followUps, analyzed, seconds: elapsed },
         ]);
       }
     } catch (e) {
@@ -206,42 +210,40 @@ export function AskAllPanel({
     setPending(false);
   }
 
-  async function copy(index: number) {
-    if (await copyRich(plainText(messages[index].text))) {
-      setCopied(index);
-      window.setTimeout(() => setCopied((c) => (c === index ? null : c)), 1800);
-    }
-  }
-
   const empty = messages.length === 0;
-  const last = messages[messages.length - 1];
-  const chips = (!empty && last?.role === "assistant" && !last.error && last.followUps?.length ? last.followUps : STOCK_SUGGESTIONS);
+  const lastFollowUps = [...messages].reverse().find((m) => m.followUps && m.followUps.length > 0)?.followUps;
+  const chips = lastFollowUps && lastFollowUps.length > 0 ? lastFollowUps : STOCK_SUGGESTIONS;
+  const callCount = meetings.length;
 
   return (
     <aside
       aria-label="Ask Fathom"
       data-ask-panel={open ? "open" : undefined}
-      className={`min-w-0 flex-col rounded-xl border border-[#2B241C]/15 bg-white dark:border-[#F2EDDD]/15 dark:bg-[#101B33] ${className}`}
+      className={`min-w-0 flex-col rounded-2xl border border-[#201D1A]/10 bg-white shadow-xl dark:border-white/10 dark:bg-[#111827] overflow-hidden ${className}`}
     >
-      <div className="flex items-center justify-between border-b border-[#2B241C]/10 px-4 py-3 dark:border-[#F2EDDD]/10">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
-          <SparkleIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" />
-          Ask Fathom
-        </h2>
+      <div className="flex items-center justify-between border-b border-[#201D1A]/8 bg-[#FAF9F5] px-4 py-3.5 dark:border-white/10 dark:bg-[#0B0F19]">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F6E56]/10 text-[#0F6E56] dark:bg-[#3EC79A]/15 dark:text-[#3EC79A]">
+            <SparkleIcon className="h-4 w-4" />
+          </span>
+          <div>
+            <h2 className="text-sm font-bold text-[#201D1A] dark:text-[#F3F4F6]">Ask Fathom</h2>
+            <p className="text-[11px] text-[#201D1A]/50 dark:text-[#F3F4F6]/50">Across all {callCount} calls</p>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close Ask Fathom"
-          className="rounded p-1 text-[#2B241C]/60 hover:bg-[#2B241C]/5 hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#201D1A]/10 bg-white text-[#201D1A]/70 hover:bg-[#201D1A]/5 hover:text-[#201D1A] dark:border-white/10 dark:bg-white/[0.04] dark:text-[#F3F4F6]/70 dark:hover:bg-white/10 dark:hover:text-white transition"
         >
-          <XIcon className="h-5 w-5" />
+          <XIcon className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <p className="rounded-lg border border-[#0F6E56]/20 bg-[#0F6E56]/10 p-3 text-xs leading-relaxed text-[#0F6E56] dark:border-[#3EC79A]/30 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A]">
-          Ask across all {callCount} of your calls. Answers come from call summaries, not full transcripts, so they can
-          miss detail. Open a call to ask about its transcript.
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <p className="rounded-xl border border-[#0F6E56]/20 bg-[#0F6E56]/10 p-3 text-xs leading-relaxed text-[#0F6E56] dark:border-[#3EC79A]/25 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A]">
+          Ask across all {callCount} of your calls. Answers come from call summaries. Open an individual call to query its exact timestamped transcript.
         </p>
 
         <div className="mt-4 space-y-3" aria-live="polite">
@@ -249,7 +251,7 @@ export function AskAllPanel({
             m.role === "user" ? (
               <p
                 key={i}
-                className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg bg-[#0F6E56] px-3 py-2 text-sm text-white dark:bg-[#3EC79A] dark:text-[#101B33]"
+                className="ml-auto w-fit max-w-[88%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-2xl rounded-tr-xs bg-[#0F6E56] px-3.5 py-2 text-xs font-medium text-white shadow-2xs dark:bg-[#3EC79A] dark:text-[#0B0F19]"
               >
                 {m.text}
               </p>
@@ -257,7 +259,7 @@ export function AskAllPanel({
               <div
                 key={i}
                 role="alert"
-                className="flex items-start gap-2 break-words [overflow-wrap:anywhere] rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-100"
+                className="flex items-start gap-2 break-words [overflow-wrap:anywhere] rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-900 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-100"
               >
                 <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
@@ -275,21 +277,21 @@ export function AskAllPanel({
                   <SparkleIcon className="h-3.5 w-3.5" />
                 </span>
                 <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
-                  <div className="text-sm leading-relaxed">
+                  <div className="text-xs leading-relaxed text-[#201D1A]/90 dark:text-[#F3F4F6]/90">
                     <AnswerText text={m.text} hrefFor={(id) => hrefs.get(id)} />
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-2 border-t border-[#2B241C]/10 pt-2 text-xs text-[#2B241C]/60 dark:border-[#F2EDDD]/10 dark:text-[#F2EDDD]/60">
+                  <div className="mt-2 flex items-center justify-between gap-2 border-t border-[#201D1A]/8 pt-2 text-[11px] text-[#201D1A]/60 dark:border-white/10 dark:text-[#F3F4F6]/60">
                     <button
                       type="button"
                       onClick={() => void copy(i)}
                       aria-label="Copy answer"
-                      className="inline-flex items-center gap-1 rounded p-1 hover:bg-[#2B241C]/5 hover:text-[#2B241C] dark:hover:bg-[#F2EDDD]/10 dark:hover:text-[#F2EDDD]"
+                      className="inline-flex items-center gap-1 rounded p-1 hover:bg-[#201D1A]/5 hover:text-[#201D1A] dark:hover:bg-white/5 dark:hover:text-white"
                     >
-                      {copied === i ? <CheckIcon className="h-4 w-4 text-[#0F6E56] dark:text-[#3EC79A]" /> : <CopyIcon className="h-4 w-4" />}
+                      {copied === i ? <CheckIcon className="h-3.5 w-3.5 text-[#0F6E56] dark:text-[#3EC79A]" /> : <CopyIcon className="h-3.5 w-3.5" />}
                       {copied === i && <span>Copied</span>}
                     </button>
                     {m.analyzed !== undefined && (
-                      <span>
+                      <span className="font-mono">
                         Analyzed {m.analyzed} {m.analyzed === 1 ? "call" : "calls"} in {m.seconds}s
                       </span>
                     )}
@@ -301,26 +303,26 @@ export function AskAllPanel({
 
           {pending && (
             <div
-              className="flex w-fit items-center gap-2 rounded-lg bg-[#2B241C]/5 px-3 py-2 text-sm text-[#2B241C]/70 dark:bg-[#F2EDDD]/10 dark:text-[#F2EDDD]/60"
+              className="flex w-fit items-center gap-2 rounded-xl bg-[#201D1A]/5 px-3 py-2 text-xs text-[#201D1A]/70 dark:bg-white/[0.05] dark:text-[#F3F4F6]/70"
               role="status"
             >
               <span className="flex gap-1" aria-hidden>
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.3s] dark:bg-[#F2EDDD]/40" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 [animation-delay:-0.15s] dark:bg-[#F2EDDD]/40" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#2B241C]/40 dark:bg-[#F2EDDD]/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#0F6E56] [animation-delay:-0.3s] dark:bg-[#3EC79A]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#0F6E56] [animation-delay:-0.15s] dark:bg-[#3EC79A]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#0F6E56] dark:bg-[#3EC79A]" />
               </span>
-              {slow ? "Still thinking. Gemini is busy right now…" : "Thinking…"}
+              <span>{slow ? "Gemini is busy right now…" : "Thinking…"}</span>
             </div>
           )}
 
           {!pending && (
-            <div className="flex flex-col items-end gap-2 pt-1">
+            <div className="flex flex-col items-end gap-1.5 pt-1">
               {chips.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => send(s)}
-                  className="max-w-[92%] rounded-md border border-[#2B241C]/20 px-3 py-1.5 text-right text-xs hover:bg-[#2B241C]/5 dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/10"
+                  className="max-w-[92%] rounded-full border border-[#201D1A]/10 bg-white px-2.5 py-1 text-right text-xs font-semibold text-[#201D1A]/70 transition-colors hover:bg-[#201D1A]/5 dark:border-white/10 dark:bg-white/[0.04] dark:text-[#F3F4F6]/70 dark:hover:bg-white/10"
                 >
                   {s}
                 </button>
@@ -329,7 +331,7 @@ export function AskAllPanel({
                 <button
                   type="button"
                   onClick={clear}
-                  className="text-xs font-medium text-[#2B241C]/60 underline hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
+                  className="text-xs font-semibold text-[#201D1A]/50 underline hover:text-[#201D1A] dark:text-[#F3F4F6]/50 dark:hover:text-[#F3F4F6]"
                 >
                   Clear chat
                 </button>
@@ -341,7 +343,7 @@ export function AskAllPanel({
       </div>
 
       <form
-        className="m-3 rounded-lg border border-[#2B241C]/20 bg-white focus-within:border-[#0F6E56] focus-within:ring-2 focus-within:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:focus-within:border-[#3EC79A] dark:focus-within:ring-[#3EC79A]/25"
+        className="m-3 rounded-xl border border-[#201D1A]/10 bg-white focus-within:border-[#0F6E56] focus-within:ring-2 focus-within:ring-[#0F6E56]/20 dark:border-white/10 dark:bg-[#161F30] dark:focus-within:border-[#3EC79A] dark:focus-within:ring-[#3EC79A]/20"
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
@@ -359,21 +361,20 @@ export function AskAllPanel({
           maxLength={MAX_QUESTION_CHARS}
           rows={2}
           aria-label="Ask a question about your calls"
-          placeholder="Ask anything…"
-          className="block w-full resize-none bg-transparent px-3 pt-2.5 text-sm outline-none placeholder:text-[#2B241C]/40 dark:placeholder:text-[#F2EDDD]/40"
+          placeholder="Ask anything across all calls…"
+          className="block w-full resize-none bg-transparent px-3 pt-2 text-xs outline-none placeholder:text-[#201D1A]/40 dark:placeholder:text-[#F3F4F6]/40"
         />
-        <div className="flex items-center justify-between px-2 pb-2">
-          {/* The question always covers all of My Calls: a label, not a dead dropdown. */}
-          <span className="rounded-md bg-[#2B241C]/5 px-2 py-1 text-xs text-[#2B241C]/70 dark:bg-[#F2EDDD]/10 dark:text-[#F2EDDD]/70">
+        <div className="flex items-center justify-between px-2.5 pb-2">
+          <span className="rounded-md bg-[#201D1A]/5 px-2 py-0.5 text-[11px] font-semibold text-[#201D1A]/60 dark:bg-white/5 dark:text-[#F3F4F6]/60">
             My Calls
           </span>
           <button
             type="submit"
             disabled={pending || !input.trim()}
             aria-label="Send question"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F6E56] text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#3EC79A] dark:text-[#101B33]"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F6E56] text-white hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-40 dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b]"
           >
-            <ArrowUpIcon className="h-4 w-4" />
+            <ArrowUpIcon className="h-3.5 w-3.5" />
           </button>
         </div>
       </form>

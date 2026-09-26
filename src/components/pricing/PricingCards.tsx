@@ -35,9 +35,9 @@ const PLANS: Plan[] = [
 ];
 
 const CTA_CLASS =
-  "mt-6 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]";
+  "mt-6 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#0c5945] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b] dark:focus-visible:outline-[#3EC79A]";
 
-/** A small, dismissible amber note anchored right under a Pro/Plus button — not a global toast, so it's obviously tied to the button that was clicked. Matches the share page's "Sign In" stub. */
+/** A small, dismissible amber note anchored right under a Pro/Plus button. */
 function NotBuiltNotice({ onDismiss }: { onDismiss: () => void }) {
   return (
     <p
@@ -57,15 +57,6 @@ function NotBuiltNotice({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
-/**
- * Three plan cards. Logged out, every button goes to /login: picking a plan
- * before an account exists doesn't mean anything yet, so Free reads "Register
- * for free" there. Logged in, Free is already the active tier — its button
- * becomes a disabled "Already claimed" rather than a link. Pro and Plus are
- * plausible marketing copy for a paid tier that doesn't exist yet, so clicking
- * either shows a small dismissible note under that button, auto-fading after
- * a few seconds.
- */
 export function PricingCards({ loggedIn }: { loggedIn: boolean }) {
   const [noticeFor, setNoticeFor] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
@@ -84,14 +75,14 @@ export function PricingCards({ loggedIn }: { loggedIn: boolean }) {
         return (
           <div
             key={plan.name}
-            className="flex flex-col rounded-2xl border border-[#2B241C]/15 p-6 dark:border-[#F2EDDD]/15"
+            className="flex flex-col rounded-2xl border border-[#201D1A]/10 bg-white p-6 shadow-xs dark:border-white/10 dark:bg-white/[0.03]"
           >
             <h2 className="text-lg font-bold">{plan.name}</h2>
             <p className="mt-2">
               <span className="text-3xl font-extrabold">{plan.price}</span>
-              <span className="text-base font-normal text-[#2B241C]/50 dark:text-[#F2EDDD]/50">/mo</span>
+              <span className="text-base font-normal text-[#201D1A]/50 dark:text-[#F3F4F6]/50">/mo</span>
             </p>
-            <p className="mt-4 flex-1 text-sm leading-relaxed text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+            <p className="mt-4 flex-1 text-sm leading-relaxed text-[#201D1A]/70 dark:text-[#F3F4F6]/70">
               {plan.description}
             </p>
             <div className="relative">

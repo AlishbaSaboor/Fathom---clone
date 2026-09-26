@@ -8,9 +8,8 @@ export interface PlayerHandle {
 }
 
 /**
- * Plays the stored recording straight from its URL, so seeking works and no
- * login is needed on the share page. Video gets a normal video player; audio
- * gets a gradient card with a native audio control bar.
+ * Compact media player for video or audio.
+ * Constrained height so in 100% zoom view, the summary, jump nav, and action items remain visible.
  */
 export function MediaPlayer({
   url,
@@ -22,7 +21,6 @@ export function MediaPlayer({
   url: string;
   kind: "audio" | "video";
   poster: { from: string; to: string };
-  /** Called as playback advances (about 4 times a second). */
   onTime?: (seconds: number) => void;
   ref?: React.Ref<PlayerHandle>;
 }) {
@@ -33,28 +31,30 @@ export function MediaPlayer({
       const media = el.current;
       if (!media) return;
       media.currentTime = Math.max(0, seconds);
-      if (play) void media.play().catch(() => undefined); // autoplay can be blocked; the user can press play
+      if (play) void media.play().catch(() => undefined);
     },
   }));
 
   if (kind === "video") {
     return (
-      <video
-        ref={el as React.RefObject<HTMLVideoElement>}
-        src={url}
-        controls
-        playsInline
-        preload="metadata"
-        onTimeUpdate={(e) => onTime?.(e.currentTarget.currentTime)}
-        className="aspect-video w-full rounded-xl bg-black"
-        aria-label="Recording"
-      />
+      <div className="relative flex w-full justify-center bg-black max-h-[300px] sm:max-h-[340px] overflow-hidden">
+        <video
+          ref={el as React.RefObject<HTMLVideoElement>}
+          src={url}
+          controls
+          playsInline
+          preload="metadata"
+          onTimeUpdate={(e) => onTime?.(e.currentTarget.currentTime)}
+          className="max-h-[300px] sm:max-h-[340px] w-full object-contain"
+          aria-label="Recording"
+        />
+      </div>
     );
   }
 
   return (
     <div
-      className="flex aspect-video w-full flex-col justify-end rounded-xl p-4"
+      className="flex h-32 sm:h-40 w-full flex-col justify-end p-4"
       style={{ backgroundImage: `linear-gradient(135deg, ${poster.from}, ${poster.to})` }}
     >
       <audio

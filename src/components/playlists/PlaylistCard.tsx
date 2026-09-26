@@ -50,13 +50,13 @@ export function PlaylistCard({ playlist }: { playlist: PlaylistSummary }) {
     <div className="group relative flex w-full">
       <Link
         href={`/playlists/${playlist.id}`}
-        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#2B241C]/15 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/15 dark:bg-[#101B33]"
+        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#201D1A]/10 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0F6E56]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-[#3EC79A]/40 dark:focus-visible:outline-[#3EC79A]"
       >
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0F6E56]/10 text-[#0F6E56] dark:bg-[#3EC79A]/15 dark:text-[#3EC79A]">
           <PlaylistIcon className="h-5 w-5" />
         </div>
-        <h2 className="mt-4 line-clamp-2 text-base font-semibold leading-snug">{playlist.name}</h2>
-        <p className="mt-1 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+        <h2 className="mt-4 line-clamp-2 text-base font-semibold leading-snug text-[#201D1A] dark:text-[#F3F4F6]">{playlist.name}</h2>
+        <p className="mt-1 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
           {playlist.meetingIds.length} {playlist.meetingIds.length === 1 ? "recording" : "recordings"} · {formatDateTime(playlist.createdAt)}
         </p>
       </Link>
@@ -67,7 +67,7 @@ export function PlaylistCard({ playlist }: { playlist: PlaylistSummary }) {
           ariaLabel={`More actions for ${playlist.name}`}
           align="right"
           menuClassName="w-48"
-          triggerClassName="flex h-8 w-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition hover:bg-black/75 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100"
+          triggerClassName="flex h-8 w-8 items-center justify-center rounded-lg bg-black/40 text-white backdrop-blur-xs transition hover:bg-black/70 focus-visible:opacity-100 group-hover:bg-black/60"
           triggerChildren={<MoreVerticalIcon className="h-4 w-4" />}
         />
       </div>

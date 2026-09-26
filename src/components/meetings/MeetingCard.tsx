@@ -46,19 +46,18 @@ export function MeetingCard({ match, playlists }: { match: MeetingMatch; playlis
     <div className="group relative flex w-full">
       <Link
         href={`/meetings/${meeting.id}`}
-        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#2B241C]/15 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/15 dark:bg-[#101B33]"
+        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#201D1A]/10 bg-white shadow-xs transition hover:-translate-y-0.5 hover:shadow-md hover:border-[#0F6E56]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-[#3EC79A]/40 dark:focus-visible:outline-[#3EC79A]"
       >
         <MeetingCardBody meeting={meeting} matchedAttendees={matchedAttendees} />
       </Link>
 
-      {/* A sibling of the link, not inside it: a button can't be nested in an anchor. */}
       <div className="absolute right-2 top-2 z-10">
         <DropdownMenu
           items={menu}
           ariaLabel={`More actions for ${meeting.title}`}
           align="right"
           menuClassName="w-48"
-          triggerClassName="flex h-8 w-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition hover:bg-black/75 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100"
+          triggerClassName="flex h-8 w-8 items-center justify-center rounded-lg bg-black/40 text-white backdrop-blur-xs transition hover:bg-black/70 focus-visible:opacity-100 group-hover:bg-black/60"
           triggerChildren={<MoreVerticalIcon className="h-4 w-4" />}
         />
       </div>

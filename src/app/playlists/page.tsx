@@ -20,7 +20,7 @@ export default async function PlaylistsPage() {
   const playlists = await getPlaylistsForOwner(user.id);
 
   return (
-    <div className="min-h-screen bg-white text-[#2B241C] dark:bg-[#101B33] dark:text-[#F2EDDD]">
+    <div className="min-h-screen bg-[#FAF9F5] text-[#201D1A] dark:bg-[#0B0F19] dark:text-[#F3F4F6]">
       <AppHeader user={user} showNav />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <PlaylistsView playlists={playlists} />

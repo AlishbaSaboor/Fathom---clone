@@ -6,8 +6,15 @@ export const metadata: Metadata = { title: "Alerts | Fathom Clone" };
 export default function AlertsPage() {
   return (
     <FeatureStubPage
-      title="Alerts"
-      description="Get notified the moment a call mentions a keyword, a competitor, or a topic you're tracking, without listening to every recording yourself."
+      title="Real-Time Alerts"
+      tier="Plus"
+      price="$39"
+      description="Never miss a critical moment. Get instant Slack or email alerts when competitors, pricing objections, or churn risks are mentioned in any meeting."
+      benefits={[
+        { title: "Competitor Monitoring", desc: "Track mentions of competitors (e.g., Gong, Chorus) with exact timestamps." },
+        { title: "Churn & Risk Escalation", desc: "AI automatically flags customer frustration and bug complaints." },
+        { title: "Instant Slack & Email Routing", desc: "Send triggered snippets directly into rep channels." },
+      ]}
     />
   );
 }

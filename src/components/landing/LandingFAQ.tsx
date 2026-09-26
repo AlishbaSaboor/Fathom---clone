@@ -44,20 +44,20 @@ const FAQS: Faq[] = [
 /** A single question: its own bordered box, collapsed until clicked, with a chevron that flips to show state. */
 function FaqRow({ faq, open, onToggle }: { faq: Faq; open: boolean; onToggle: () => void }) {
   return (
-    <div className="rounded-2xl border border-[#2B241C]/15 dark:border-[#F2EDDD]/15">
+    <div className="rounded-2xl border border-[#201D1A]/10 bg-white shadow-xs dark:border-white/10 dark:bg-white/[0.03]">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-bold focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#0F6E56] dark:focus-visible:outline-[#3EC79A]"
       >
-        {faq.question}
+        <span>{faq.question}</span>
         <ChevronDownIcon
-          className={`h-5 w-5 shrink-0 text-[#2B241C]/50 transition-transform duration-200 dark:text-[#F2EDDD]/50 ${open ? "rotate-180" : ""}`}
+          className={`h-5 w-5 shrink-0 text-[#201D1A]/50 transition-transform duration-200 dark:text-[#F3F4F6]/50 ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <p className="px-5 pb-5 text-sm leading-relaxed text-[#2B241C]/70 dark:text-[#F2EDDD]/70">{faq.answer}</p>
+        <p className="px-5 pb-5 text-sm leading-relaxed text-[#201D1A]/70 dark:text-[#F3F4F6]/70">{faq.answer}</p>
       )}
     </div>
   );
@@ -68,7 +68,7 @@ export function LandingFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-8 px-4 pb-20 sm:px-6">
+    <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-4 pb-20 sm:px-6">
       <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">Frequently asked questions.</h2>
       <div className="mt-10 space-y-3">
         {FAQS.map((faq, i) => (

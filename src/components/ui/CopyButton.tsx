@@ -12,7 +12,6 @@ export function CopyButton({
 }: {
   getText: () => string;
   label: string;
-  /** Shown instead of `label` below the sm breakpoint, for tight toolbars. */
   shortLabel?: string;
   copiedLabel?: string;
   className?: string;
@@ -29,7 +28,7 @@ export function CopyButton({
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Clipboard can be unavailable (insecure context, denied permission); nothing to recover.
+      // Clipboard unavailable
     }
   }
 
@@ -37,7 +36,7 @@ export function CopyButton({
     <button
       type="button"
       onClick={copy}
-      className={`inline-flex items-center gap-1.5 rounded-md border border-[#0F6E56]/25 bg-[#0F6E56]/10 px-2.5 py-1.5 text-xs font-medium text-[#0F6E56] hover:bg-[#0F6E56]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#3EC79A]/30 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A] dark:hover:bg-[#3EC79A]/20 dark:focus-visible:outline-[#3EC79A] ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-[#0F6E56]/20 bg-[#0F6E56]/8 px-2.5 py-1.5 text-xs font-semibold text-[#0F6E56] shadow-2xs transition hover:bg-[#0F6E56]/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#3EC79A]/25 dark:bg-[#3EC79A]/10 dark:text-[#3EC79A] dark:hover:bg-[#3EC79A]/20 dark:focus-visible:outline-[#3EC79A] ${className}`}
     >
       {copied ? <CheckIcon className="h-3.5 w-3.5" /> : <CopyIcon className="h-3.5 w-3.5" />}
       <span aria-live="polite" className="whitespace-nowrap">
