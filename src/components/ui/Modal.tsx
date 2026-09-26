@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { XIcon } from "./icons";
 
 /**
@@ -9,6 +10,14 @@ import { XIcon } from "./icons";
  * input before an action (creating a playlist, picking recordings to add) —
  * there's no generic confirm dialog here, since plain destructive actions
  * still use `window.confirm`, matching the rest of the app.
+ *
+ * Rendered via a portal straight into document.body. Every caller so far
+ * happens to live inside AppHeader's `sticky` <header>, which — sticky
+ * establishing its own stacking context — was clipping this dialog's `fixed`
+ * overlay down to the header's own height instead of the full viewport, no
+ * matter what the overlay's own CSS said. A portal sidesteps the ancestor
+ * entirely, which is why virtually every real modal library does this by
+ * default rather than rendering inline.
  */
 export function Modal({
   open,
@@ -21,6 +30,14 @@ export function Modal({
   title: string;
   children: React.ReactNode;
 }) {
+  // document.body doesn't exist during SSR; only portal once mounted on the client. This is the standard
+  // one-time mount flag for a portal — there's no prop or external event to derive it from instead.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time SSR-safety flag, not a derived-state case
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -42,9 +59,9 @@ export function Modal({
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     // The overlay itself scrolls (rather than using items-center alone on a fixed, viewport-height box): if the
     // panel is ever taller than the viewport, plain centering pushes its top off-screen with no way to reach it —
     // this way there's always a scrollbar that reveals the whole dialog, title included.
@@ -71,6 +88,7 @@ export function Modal({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
