@@ -30,6 +30,18 @@ export function Modal({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Locks the page behind the overlay while it's open: without this, the page can still scroll (and jump/resize
+  // as its own scrollbar appears or disappears) independently of the overlay's scroll, which is what made the
+  // dialog look like it opened "wherever" rather than steadily in place.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -37,7 +49,7 @@ export function Modal({
     // panel is ever taller than the viewport, plain centering pushes its top off-screen with no way to reach it —
     // this way there's always a scrollbar that reveals the whole dialog, title included.
     <div className="fixed inset-0 z-40 overflow-y-auto bg-black/40" onClick={onClose}>
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4">
         <div
           role="dialog"
           aria-modal="true"
