@@ -295,8 +295,8 @@ export function UploadForm() {
           </button>
           <p className="mt-3 text-xs leading-relaxed text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
             Your recording is stored so you can play it back later, and a temporary copy is sent to Google&rsquo;s
-            Gemini API to be transcribed; Gemini&rsquo;s copy is deleted once processing finishes. Every recording gets
-            a share link: anyone who has it can watch the recording and read the transcript. Deleting a recording
+            Gemini API to be transcribed; Google automatically deletes files uploaded to Gemini within 48 hours. Every
+            recording gets a share link: anyone who has it can watch the recording and read the transcript. Deleting a recording
             removes it and turns its link off.
           </p>
         </div>

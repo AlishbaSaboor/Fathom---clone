@@ -6,7 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 export function PrivacyPolicyModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal open={open} onClose={onClose} title="Privacy Policy">
-      <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1 text-sm leading-relaxed text-[#2B241C]/80 dark:text-[#F2EDDD]/80">
+      <div className="space-y-4 text-sm leading-relaxed text-[#2B241C]/80 dark:text-[#F2EDDD]/80">
         <p>
           <strong className="font-semibold text-[#2B241C] dark:text-[#F2EDDD]">What we collect.</strong> Your name and
           email — from Google sign-in, or the ones you provide when creating an account — and whatever you upload: the

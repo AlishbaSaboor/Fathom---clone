@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDownIcon } from "@/components/ui/icons";
+
 interface Faq {
   question: string;
   answer: string;
@@ -36,19 +41,40 @@ const FAQS: Faq[] = [
   },
 ];
 
-/** A static Q&A list — no accordion, since the landing page is fully prerendered and doesn't need client JS for this. */
+/** A single question: its own bordered box, collapsed until clicked, with a chevron that flips to show state. */
+function FaqRow({ faq, open, onToggle }: { faq: Faq; open: boolean; onToggle: () => void }) {
+  return (
+    <div className="rounded-2xl border border-[#2B241C]/15 dark:border-[#F2EDDD]/15">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-bold focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#0F6E56] dark:focus-visible:outline-[#3EC79A]"
+      >
+        {faq.question}
+        <ChevronDownIcon
+          className={`h-5 w-5 shrink-0 text-[#2B241C]/50 transition-transform duration-200 dark:text-[#F2EDDD]/50 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <p className="px-5 pb-5 text-sm leading-relaxed text-[#2B241C]/70 dark:text-[#F2EDDD]/70">{faq.answer}</p>
+      )}
+    </div>
+  );
+}
+
+/** An accordion: one question open at a time, collapsed by default — the standard FAQ pattern. */
 export function LandingFAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
     <section id="faq" className="mx-auto max-w-3xl scroll-mt-8 px-4 pb-20 sm:px-6">
       <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">Frequently asked questions.</h2>
-      <dl className="mt-10 divide-y divide-[#2B241C]/10 dark:divide-[#F2EDDD]/10">
-        {FAQS.map((faq) => (
-          <div key={faq.question} className="py-6 first:pt-0">
-            <dt className="text-base font-bold">{faq.question}</dt>
-            <dd className="mt-2 text-sm leading-relaxed text-[#2B241C]/70 dark:text-[#F2EDDD]/70">{faq.answer}</dd>
-          </div>
+      <div className="mt-10 space-y-3">
+        {FAQS.map((faq, i) => (
+          <FaqRow key={faq.question} faq={faq} open={openIndex === i} onToggle={() => setOpenIndex(openIndex === i ? null : i)} />
         ))}
-      </dl>
+      </div>
     </section>
   );
 }
