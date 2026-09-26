@@ -25,8 +25,9 @@ export async function generateMetadata({ params }: PageProps<"/playlists/[id]">)
   return { title: playlist ? `${playlist.name} | Fathom Clone` : "Playlist not found" };
 }
 
-export default async function PlaylistPage({ params }: PageProps<"/playlists/[id]">) {
+export default async function PlaylistPage({ params, searchParams }: PageProps<"/playlists/[id]">) {
   const { id } = await params;
+  const { add } = await searchParams;
   const { user, playlist, allMeetings } = await getData(id);
   if (!playlist) notFound();
 
@@ -49,6 +50,7 @@ export default async function PlaylistPage({ params }: PageProps<"/playlists/[id
           shareToken={playlist.shareToken}
           meetings={playlist.meetings}
           availableMeetings={availableMeetings}
+          autoOpenAdd={add === "1"}
         />
       </main>
     </div>

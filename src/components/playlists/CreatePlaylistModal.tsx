@@ -32,8 +32,12 @@ export function CreatePlaylistModal({ open, onClose }: { open: boolean; onClose:
       const playlist = (await res.json()) as PlaylistSummary;
       setName("");
       onClose();
-      router.push(`/playlists/${playlist.id}`);
-      router.refresh();
+      // No router.refresh() here: it's not needed (a push to a brand-new dynamic route
+      // already fetches fresh data — see staleTimes.dynamic in Next's docs) and calling
+      // it immediately after push() raced the navigation, causing the list page to render
+      // stale/misplaced content. `add=1` tells the new page to open its own "Add
+      // recordings" dialog right away.
+      router.push(`/playlists/${playlist.id}?add=1`);
     } catch {
       show("Couldn't reach the server. Check your connection and try again.", "error");
       setPending(false);

@@ -8,8 +8,6 @@ interface Plan {
   price: string;
   description: string;
   cta: string;
-  /** Present only for Free: a real destination. Pro and Plus have none — see onSelect below. */
-  href?: string;
 }
 
 const PLANS: Plan[] = [
@@ -18,8 +16,7 @@ const PLANS: Plan[] = [
     price: "$0",
     description:
       "Upload up to 200 MB or 30 minutes per recording and get a real transcript, summary and action items. Ask Fathom answers from your actual meeting data, and every recording gets a shareable link — no login required to view it.",
-    cta: "Go to My Calls",
-    href: "/calls",
+    cta: "Register for free",
   },
   {
     name: "Pro",
@@ -37,12 +34,16 @@ const PLANS: Plan[] = [
   },
 ];
 
+const CTA_CLASS =
+  "mt-6 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]";
+
 /**
  * Three plan cards. Logged out, every button goes to /login: picking a plan
- * before an account exists doesn't mean anything yet. Logged in, Free links
- * straight into the real app; Pro and Plus are plausible marketing copy for a
- * paid tier that doesn't exist yet, so their buttons show the same honest stub
- * message as the rest of the app.
+ * before an account exists doesn't mean anything yet, so Free reads "Register
+ * for free" there. Logged in, Free is already the active tier — its button
+ * becomes a disabled "Already claimed" rather than a link. Pro and Plus are
+ * plausible marketing copy for a paid tier that doesn't exist yet, so their
+ * buttons always show the same honest stub message once logged in.
  */
 export function PricingCards({ loggedIn }: { loggedIn: boolean }) {
   const { show, toast } = useToast();
@@ -51,7 +52,7 @@ export function PricingCards({ loggedIn }: { loggedIn: boolean }) {
     <>
       <div className="grid gap-6 sm:grid-cols-3">
         {PLANS.map((plan) => {
-          const href = loggedIn ? plan.href : "/login";
+          const isFree = plan.name === "Free";
           return (
             <div
               key={plan.name}
@@ -65,19 +66,16 @@ export function PricingCards({ loggedIn }: { loggedIn: boolean }) {
               <p className="mt-4 flex-1 text-sm leading-relaxed text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
                 {plan.description}
               </p>
-              {href ? (
-                <Link
-                  href={href}
-                  className="mt-6 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]"
-                >
+              {!loggedIn ? (
+                <Link href="/login" className={CTA_CLASS}>
                   {plan.cta}
                 </Link>
+              ) : isFree ? (
+                <button type="button" disabled className={`${CTA_CLASS} cursor-not-allowed opacity-50`}>
+                  Already claimed
+                </button>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => show("Not part of this build", "info")}
-                  className="mt-6 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]"
-                >
+                <button type="button" onClick={() => show("Not part of this build", "info")} className={CTA_CLASS}>
                   {plan.cta}
                 </button>
               )}

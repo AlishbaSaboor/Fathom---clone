@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LinkIcon, PlaylistIcon, PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { copyRich } from "@/lib/clipboard";
@@ -16,16 +16,25 @@ export function PlaylistDetail({
   shareToken,
   meetings,
   availableMeetings,
+  autoOpenAdd = false,
 }: {
   id: string;
   name: string;
   shareToken: string;
   meetings: MeetingListItem[];
   availableMeetings: MeetingListItem[];
+  /** Opens "Add recordings" immediately — set right after creating a playlist, so the next thing seen is the checklist. */
+  autoOpenAdd?: boolean;
 }) {
   const router = useRouter();
   const { show, toast } = useToast();
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(autoOpenAdd);
+
+  // Strips ?add=1 right after using it, so reloading this page later doesn't reopen the dialog on its own.
+  useEffect(() => {
+    if (autoOpenAdd) router.replace(`/playlists/${id}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only ever meant to run once, right after mount
+  }, []);
 
   async function copyShareLink() {
     const ok = await copyRich(`${window.location.origin}/share/playlists/${shareToken}`);
