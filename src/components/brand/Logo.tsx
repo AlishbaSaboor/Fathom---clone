@@ -1,56 +1,68 @@
-// The app's own mark: a speech bubble (the conversation) holding three sound
-// bars (the recording). Drawn as plain geometry so it stays readable from a
-// 16px favicon up. The same shapes are in src/app/icon.svg (charcoal, matching
-// the rest of the redesign), which needs a literal color since a favicon has no
-// page around it to inherit from.
+"use client";
+
+import { useId } from "react";
 
 /**
- * The bubble-and-bars mark. The bubble takes its color from `className`
- * (currentColor); the bars default to white, which is right whenever the
- * bubble itself is a solid, fairly dark color (as it is everywhere the app
- * uses this mark). A caller whose bubble color can turn light (a monochrome
- * mark that follows light/dark mode, say) should override `barClassName` so
- * the bars stay visible against it.
+ * Fathom AI Brand Mark:
+ * A precision squircle emblem combining the letter "F", audio frequency bars,
+ * and a glowing 4-point AI intelligence star. Perfectly optical-centered and
+ * high contrast in both light and dark mode.
  */
-export function LogoMark({ className = "h-7 w-7", barClassName = "fill-white" }: { className?: string; barClassName?: string }) {
+export function LogoMark({ className = "h-7 w-7" }: { className?: string; barClassName?: string }) {
+  const reactId = useId();
+  const gradId = `fathom-grad-${reactId.replace(/:/g, "")}`;
+
   return (
-    <svg viewBox="0 0 32 32" aria-hidden className={`shrink-0 ${className}`}>
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={`shrink-0 ${className}`}
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#0F6E56" className="[stop-color:#0F6E56] dark:[stop-color:#128A6B]" />
+          <stop offset="100%" stopColor="#074433" className="[stop-color:#074433] dark:[stop-color:#095741]" />
+        </linearGradient>
+      </defs>
+      <rect width="32" height="32" rx="8" fill={`url(#${gradId})`} />
+      {/* "F" letterform & sound frequency bars */}
+      <rect x="7.5" y="7.5" width="3.5" height="17" rx="1.75" fill="white" />
+      <rect x="7.5" y="7.5" width="16.5" height="3.5" rx="1.75" fill="white" />
+      <rect x="7.5" y="14" width="11.5" height="3.5" rx="1.75" fill="white" />
+      {/* AI intelligence sparkle */}
       <path
-        fill="currentColor"
-        d="M9 2h14a7 7 0 0 1 7 7v9a7 7 0 0 1-7 7H14l-7 6v-6H9a7 7 0 0 1-7-7V9a7 7 0 0 1 7-7z"
+        d="M21.5 17.5c0 2-1.5 3.5-3.5 3.5 2 0 3.5 1.5 3.5 3.5 0-2 1.5-3.5 3.5-3.5-2 0-3.5-1.5-3.5-3.5z"
+        fill="#8EF0CF"
       />
-      <rect x="7" y="9" width="4" height="9" rx="2" className={barClassName} />
-      <rect x="14" y="5.5" width="4" height="16" rx="2" className={barClassName} />
-      <rect x="21" y="8" width="4" height="11" rx="2" className={barClassName} />
     </svg>
   );
 }
 
-/** Mark plus the "Fathom AI" wordmark (Inter, the app's font). Used by both the app and share headers. */
+/** Full brand mark with typography. */
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 text-[17px] leading-none tracking-tight ${className}`}>
-      <LogoMark className="h-7 w-7 text-[#0F6E56] dark:text-[#3EC79A]" />
-      <span>
-        <span className="font-bold">Fathom</span> <span className="font-medium text-[#0F6E56] dark:text-[#3EC79A]">AI</span>
+    <span className={`inline-flex items-center gap-2.5 text-[17px] leading-none tracking-tight ${className}`}>
+      <LogoMark className="h-7 w-7" />
+      <span className="inline-flex items-baseline">
+        <span className="font-bold text-[#1C1917] dark:text-[#FAF9F5]">Fathom</span>
+        <span className="ml-1 font-semibold text-[#0F6E56] dark:text-[#3EC79A]">AI</span>
       </span>
     </span>
   );
 }
 
-/**
- * The mark and wordmark in plain foreground color rather than the app's blue,
- * for pages whose own palette reserves color for other things (an accent for
- * buttons, say) and wants the brand mark to just follow their text color. Used
- * by the marketing page and My Calls.
- */
+/** Wordmark used across header, footer, auth, and shared pages. */
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 text-[17px] leading-none tracking-tight ${className}`}>
-      <LogoMark className="h-7 w-7 text-[#201D1A] dark:text-[#F3F4F6]" barClassName="fill-white dark:fill-[#0B0F19]" />
-      <span>
-        <span className="font-bold">Fathom</span> <span className="font-medium">AI</span>
+    <span className={`inline-flex items-center gap-2.5 text-[17px] leading-none tracking-tight ${className}`}>
+      <LogoMark className="h-7 w-7" />
+      <span className="inline-flex items-baseline">
+        <span className="font-bold text-[#1C1917] dark:text-[#FAF9F5]">Fathom</span>
+        <span className="ml-1 font-semibold text-[#0F6E56] dark:text-[#3EC79A]">AI</span>
       </span>
     </span>
   );
 }
+

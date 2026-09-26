@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path fill="#2B241C" d="M9 2h14a7 7 0 0 1 7 7v9a7 7 0 0 1-7 7H14l-7 6v-6H9a7 7 0 0 1-7-7V9a7 7 0 0 1 7-7z"/><rect x="7" y="9" width="4" height="9" rx="2" fill="#fff"/><rect x="14" y="5.5" width="4" height="16" rx="2" fill="#fff"/><rect x="21" y="8" width="4" height="11" rx="2" fill="#fff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="fav-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F6E56" />
+      <stop offset="100%" stop-color="#074433" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#fav-grad)" />
+  <rect x="7.5" y="7.5" width="3.5" height="17" rx="1.75" fill="#fff" />
+  <rect x="7.5" y="7.5" width="16.5" height="3.5" rx="1.75" fill="#fff" />
+  <rect x="7.5" y="14" width="11.5" height="3.5" rx="1.75" fill="#fff" />
+  <path d="M21.5 17.5c0 2-1.5 3.5-3.5 3.5 2 0 3.5 1.5 3.5 3.5 0-2 1.5-3.5 3.5-3.5-2 0-3.5-1.5-3.5-3.5z" fill="#8EF0CF" />
+</svg>
