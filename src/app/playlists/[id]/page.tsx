@@ -22,7 +22,7 @@ const getData = cache(async (id: string) => {
 export async function generateMetadata({ params }: PageProps<"/playlists/[id]">): Promise<Metadata> {
   const { id } = await params;
   const { playlist } = await getData(id);
-  return { title: playlist ? `${playlist.name} | Fathom Clone` : "Playlist not found" };
+  return { title: playlist ? `${playlist.name} | Fathom AI` : "Playlist not found" };
 }
 
 export default async function PlaylistPage({ params, searchParams }: PageProps<"/playlists/[id]">) {

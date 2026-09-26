@@ -18,14 +18,14 @@ export function DeletePlaylistModal({
 }) {
   return (
     <Modal open={open} onClose={onCancel} title="Delete playlist">
-      <p className="text-sm text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+      <p className="text-sm text-[#201D1A]/70 dark:text-[#F3F4F6]/70">
         Delete &ldquo;{name}&rdquo;? The recordings in it aren&rsquo;t affected, but the share link stops working.
       </p>
       <div className="mt-5 flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-semibold text-[#2B241C]/70 transition hover:bg-[#2B241C]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:text-[#F2EDDD]/70 dark:hover:bg-[#F2EDDD]/10 dark:focus-visible:outline-[#3EC79A]"
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-[#201D1A]/70 transition hover:bg-[#201D1A]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:text-[#F3F4F6]/70 dark:hover:bg-white/10 dark:focus-visible:outline-[#3EC79A]"
         >
           Cancel
         </button>

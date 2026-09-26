@@ -192,8 +192,8 @@ export function UploadForm() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-semibold tracking-tight">Upload a recording</h1>
-      <p className="mt-1 text-sm text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+      <h1 className="text-2xl font-semibold tracking-tight text-[#201D1A] dark:text-[#F3F4F6]">Upload a recording</h1>
+      <p className="mt-1 text-sm text-[#201D1A]/70 dark:text-[#F3F4F6]/70">
         Get a real transcript, summary and action items from an audio or video file.
       </p>
 
@@ -212,14 +212,14 @@ export function UploadForm() {
         className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#0F6E56] dark:focus-within:outline-[#3EC79A] ${
           dragging
             ? "border-[#0F6E56] bg-[#0F6E56]/10 dark:border-[#3EC79A] dark:bg-[#3EC79A]/10"
-            : "border-[#2B241C]/25 hover:border-[#0F6E56]/60 dark:border-[#F2EDDD]/25 dark:hover:border-[#3EC79A]/60"
+            : "border-[#201D1A]/20 bg-white/40 hover:border-[#0F6E56]/60 dark:border-white/20 dark:bg-white/[0.02] dark:hover:border-[#3EC79A]/60"
         } ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
         <UploadIcon className="h-8 w-8 text-[#0F6E56] dark:text-[#3EC79A]" />
-        <span className="mt-3 text-sm font-medium">
+        <span className="mt-3 text-sm font-medium text-[#201D1A] dark:text-[#F3F4F6]">
           {file ? "Choose a different file" : "Choose an audio or video file, or drop it here"}
         </span>
-        <span className="mt-1 text-xs text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+        <span className="mt-1 text-xs text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
           {ACCEPTED_FORMATS_LABEL} · up to {formatBytes(MAX_UPLOAD_BYTES)} and {formatDuration(MAX_DURATION_SEC)}
         </span>
         <input
@@ -235,10 +235,10 @@ export function UploadForm() {
 
       {/* selected file */}
       {file && (
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[#2B241C]/15 bg-white px-4 py-3 text-sm dark:border-[#F2EDDD]/15 dark:bg-[#101B33]">
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[#201D1A]/10 bg-white px-4 py-3 text-sm dark:border-white/10 dark:bg-white/[0.04]">
           <div className="min-w-0">
-            <p className="truncate font-medium">{file.name}</p>
-            <p className="text-xs text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+            <p className="truncate font-medium text-[#201D1A] dark:text-[#F3F4F6]">{file.name}</p>
+            <p className="text-xs text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
               {formatBytes(file.size)}
               {measuring && " · reading file…"}
               {durationSec ? ` · ${formatDuration(durationSec)}` : ""}
@@ -249,7 +249,7 @@ export function UploadForm() {
               type="button"
               onClick={clear}
               aria-label="Remove file"
-              className="rounded p-1 text-[#2B241C]/40 hover:text-[#2B241C] dark:text-[#F2EDDD]/40 dark:hover:text-[#F2EDDD]"
+              className="rounded-lg p-1 text-[#201D1A]/40 hover:bg-[#201D1A]/5 hover:text-[#201D1A] dark:text-[#F3F4F6]/40 dark:hover:bg-white/10 dark:hover:text-[#F3F4F6] transition-colors"
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -289,11 +289,11 @@ export function UploadForm() {
             type="button"
             onClick={run}
             disabled={!ready}
-            className="w-full rounded-lg bg-[#0F6E56] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]"
+            className="w-full rounded-lg bg-[#0F6E56] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b] dark:focus-visible:outline-[#3EC79A]"
           >
             {status === "error" && error?.retryable ? "Try again" : "Process"}
           </button>
-          <p className="mt-3 text-xs leading-relaxed text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+          <p className="mt-3 text-xs leading-relaxed text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
             Your recording is stored so you can play it back later, and a temporary copy is sent to Google&rsquo;s
             Gemini API to be transcribed; Google automatically deletes files uploaded to Gemini within 48 hours. Every
             recording gets a share link: anyone who has it can watch the recording and read the transcript. Deleting a recording
@@ -304,7 +304,7 @@ export function UploadForm() {
 
       {/* progress, then the done state */}
       {busy && (
-        <div className="mt-6 rounded-xl border border-[#2B241C]/15 bg-white p-5 dark:border-[#F2EDDD]/15 dark:bg-[#101B33]" aria-live="polite">
+        <div className="mt-6 rounded-xl border border-[#201D1A]/10 bg-white p-5 dark:border-white/10 dark:bg-[#0B0F19]" aria-live="polite">
           <ol className="space-y-3">
             {STEPS.map((s, i) => {
               const current = status === "done" ? STEPS.length : STEPS.findIndex((x) => x.id === step);
@@ -317,21 +317,21 @@ export function UploadForm() {
                     ) : state === "active" ? (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0F6E56]/25 border-t-[#0F6E56] dark:border-[#3EC79A]/25 dark:border-t-[#3EC79A]" role="status" aria-label="In progress" />
                     ) : (
-                      <span className="h-2 w-2 rounded-full bg-[#2B241C]/20 dark:bg-[#F2EDDD]/20" />
+                      <span className="h-2 w-2 rounded-full bg-[#201D1A]/20 dark:bg-white/20" />
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className={state === "todo" ? "text-[#2B241C]/40 dark:text-[#F2EDDD]/40" : "font-medium"}>{s.label}</p>
+                    <p className={state === "todo" ? "text-[#201D1A]/40 dark:text-[#F3F4F6]/40" : "font-medium text-[#201D1A] dark:text-[#F3F4F6]"}>{s.label}</p>
                     {state === "active" && s.id === "upload" && (
                       <div className="mt-2">
-                        <div className="h-1.5 overflow-hidden rounded-full bg-[#2B241C]/10 dark:bg-[#F2EDDD]/10">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-[#201D1A]/10 dark:bg-white/10">
                           <div className="h-full rounded-full bg-[#0F6E56] transition-[width] dark:bg-[#3EC79A]" style={{ width: `${percent}%` }} />
                         </div>
-                        <p className="mt-1 text-xs tabular-nums text-[#2B241C]/60 dark:text-[#F2EDDD]/60">{percent}%</p>
+                        <p className="mt-1 text-xs tabular-nums text-[#201D1A]/60 dark:text-[#F3F4F6]/60">{percent}%</p>
                       </div>
                     )}
                     {state === "active" && s.id === "analyze" && (
-                      <p className="mt-1 text-xs text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+                      <p className="mt-1 text-xs text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
                         {elapsed}s elapsed.{" "}
                         {elapsed < 60
                           ? "This usually takes 30 to 40 seconds."
@@ -344,7 +344,7 @@ export function UploadForm() {
             })}
           </ol>
           {status === "done" && savedId ? (
-            <p role="status" className="mt-5 text-sm font-medium">
+            <p role="status" className="mt-5 text-sm font-medium text-[#201D1A] dark:text-[#F3F4F6]">
               Done. Opening your recording…{" "}
               <a href={`/meetings/${savedId}`} className="font-semibold text-[#0F6E56] underline dark:text-[#3EC79A]">
                 Open it now
@@ -354,7 +354,7 @@ export function UploadForm() {
             <button
               type="button"
               onClick={cancel}
-              className="mt-5 text-sm font-medium text-[#2B241C]/60 underline hover:text-[#2B241C] dark:text-[#F2EDDD]/60 dark:hover:text-[#F2EDDD]"
+              className="mt-5 text-sm font-medium text-[#201D1A]/60 underline hover:text-[#201D1A] dark:text-[#F3F4F6]/60 dark:hover:text-[#F3F4F6] transition-colors"
             >
               Cancel
             </button>

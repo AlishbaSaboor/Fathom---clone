@@ -83,6 +83,8 @@ export type MeetingListItem = Pick<
 > & {
   /** Saved once, when the recording finishes analysis; action items are never added or removed afterward. */
   actionItemCount: number;
+  /** Recording media info for video thumbnails and playback previews. */
+  media?: { url: string; fileName: string; mimeType: string; sizeBytes?: number };
 };
 
 /**

@@ -101,20 +101,20 @@ export function AddToPlaylistModal({
     <Modal open={open} onClose={onClose} title="Add to playlist">
       <div className="max-h-64 space-y-1 overflow-y-auto">
         {items.length === 0 ? (
-          <p className="py-2 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">You don&rsquo;t have any playlists yet.</p>
+          <p className="py-2 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">You don&rsquo;t have any playlists yet.</p>
         ) : (
           items.map((playlist) => {
             const checked = playlist.meetingIds.includes(meetingId);
             return (
               <label
                 key={playlist.id}
-                className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-[#2B241C]/5 dark:hover:bg-[#F2EDDD]/10"
+                className="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm text-[#201D1A] hover:bg-[#201D1A]/5 dark:text-[#F3F4F6] dark:hover:bg-white/[0.06] transition-colors"
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={(e) => void toggle(playlist, e.target.checked)}
-                  className="h-4 w-4 rounded border-[#2B241C]/30 text-[#0F6E56] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/30 dark:text-[#3EC79A]"
+                  className="h-4 w-4 rounded border-[#201D1A]/30 text-[#0F6E56] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/30 dark:text-[#3EC79A]"
                 />
                 <span className="min-w-0 flex-1 truncate">{playlist.name}</span>
               </label>
@@ -128,19 +128,19 @@ export function AddToPlaylistModal({
           e.preventDefault();
           void createAndAdd();
         }}
-        className="mt-4 flex items-center gap-2 border-t border-[#2B241C]/10 pt-4 dark:border-[#F2EDDD]/10"
+        className="mt-4 flex items-center gap-2 border-t border-[#201D1A]/10 pt-4 dark:border-white/10"
       >
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New playlist name"
           maxLength={100}
-          className="min-w-0 flex-1 rounded-lg border border-[#2B241C]/20 bg-white px-3 py-2 text-sm outline-none placeholder:text-[#2B241C]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:placeholder:text-[#F2EDDD]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/25"
+          className="min-w-0 flex-1 rounded-lg border border-[#201D1A]/20 bg-white px-3 py-2 text-sm text-[#201D1A] outline-none placeholder:text-[#201D1A]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/20 dark:border-white/15 dark:bg-white/[0.06] dark:text-[#F3F4F6] dark:placeholder:text-[#F3F4F6]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/20"
         />
         <button
           type="submit"
           disabled={!newName.trim() || creating}
-          className="shrink-0 rounded-lg bg-[#0F6E56] px-3 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#101B33]"
+          className="shrink-0 rounded-lg bg-[#0F6E56] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b]"
         >
           {creating ? "Creating…" : "Create"}
         </button>

@@ -63,7 +63,7 @@ export function AddRecordingsModal({
     <Modal open={open} onClose={onClose} title="Add recordings">
       <div className="max-h-80 space-y-1 overflow-y-auto">
         {available.length === 0 ? (
-          <p className="py-2 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">Every recording is already in this playlist.</p>
+          <p className="py-2 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">Every recording is already in this playlist.</p>
         ) : (
           available.map((meeting) => {
             const isAdded = added.has(meeting.id);
@@ -71,17 +71,17 @@ export function AddRecordingsModal({
             return (
               <div
                 key={meeting.id}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm hover:bg-[#2B241C]/5 dark:hover:bg-[#F2EDDD]/10"
+                className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm hover:bg-[#201D1A]/5 dark:hover:bg-white/[0.06] transition-colors"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{meeting.title}</p>
-                  <p className="text-xs text-[#2B241C]/60 dark:text-[#F2EDDD]/60">{formatDateTime(meeting.date)}</p>
+                  <p className="truncate font-medium text-[#201D1A] dark:text-[#F3F4F6]">{meeting.title}</p>
+                  <p className="text-xs text-[#201D1A]/60 dark:text-[#F3F4F6]/60">{formatDateTime(meeting.date)}</p>
                 </div>
                 <button
                   type="button"
                   disabled={isAdded || isPending}
                   onClick={() => void add(meeting)}
-                  className="shrink-0 rounded-md bg-[#0F6E56] px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#101B33]"
+                  className="shrink-0 rounded-md bg-[#0F6E56] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b]"
                 >
                   {isAdded ? "Added" : isPending ? "Adding…" : "Add"}
                 </button>

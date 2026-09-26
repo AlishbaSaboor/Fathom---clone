@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps<"/share/playlists/[
   const { token } = await params;
   const playlist = await getShared(token);
   return {
-    title: playlist ? `${playlist.name} (shared playlist) | Fathom Clone` : "Shared playlist not found",
+    title: playlist ? `${playlist.name} (shared playlist) | Fathom AI` : "Shared playlist not found",
     robots: { index: false, follow: false },
   };
 }

@@ -6,7 +6,7 @@ import { GoogleButton } from "@/components/auth/GoogleButton";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { getUser, isSafeRedirect } from "@/lib/server/auth";
 
-export const metadata: Metadata = { title: "Sign up | Fathom Clone" };
+export const metadata: Metadata = { title: "Sign up | Fathom AI" };
 
 export default async function SignupPage({ searchParams }: PageProps<"/signup">) {
   const params = await searchParams;

@@ -3,7 +3,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 
 export const metadata: Metadata = {
-  title: "Contact Us | Fathom Clone",
+  title: "Contact Us | Fathom AI",
   description: "Get in touch with the Fathom team for questions, feedback, or support.",
 };
 

@@ -66,8 +66,8 @@ export function PlaylistDetail({
     <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
-          <p className="mt-1 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#201D1A] dark:text-[#F3F4F6]">{name}</h1>
+          <p className="mt-1 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">
             {meetings.length} {meetings.length === 1 ? "recording" : "recordings"}
           </p>
         </div>
@@ -75,7 +75,7 @@ export function PlaylistDetail({
           <button
             type="button"
             onClick={() => void copyShareLink()}
-            className="inline-flex items-center gap-2 rounded-lg border border-[#2B241C]/20 px-4 py-2.5 text-sm font-semibold transition hover:bg-[#2B241C]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/20 dark:hover:bg-[#F2EDDD]/5 dark:focus-visible:outline-[#3EC79A]"
+            className="inline-flex items-center gap-2 rounded-lg border border-[#201D1A]/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#201D1A] transition hover:bg-[#201D1A]/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.04] dark:text-[#F3F4F6] dark:hover:bg-white/10 dark:focus-visible:outline-[#3EC79A]"
           >
             <LinkIcon className="h-4 w-4" />
             Copy Share Link
@@ -83,7 +83,7 @@ export function PlaylistDetail({
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#101B33] dark:focus-visible:outline-[#3EC79A]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0c5945] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b] dark:focus-visible:outline-[#3EC79A]"
           >
             <PlusIcon className="h-4 w-4" />
             Add recordings
@@ -93,7 +93,7 @@ export function PlaylistDetail({
             onClick={() => setConfirmOpen(true)}
             aria-label="Delete playlist"
             title="Delete playlist"
-            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40"
           >
             <TrashIcon className="h-4 w-4" />
           </button>
@@ -101,14 +101,14 @@ export function PlaylistDetail({
       </div>
 
       {meetings.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[#2B241C]/25 p-10 text-center dark:border-[#F2EDDD]/25">
-          <PlaylistIcon className="mx-auto h-8 w-8 text-[#2B241C]/40 dark:text-[#F2EDDD]/40" />
-          <p className="mt-3 font-medium">No recordings in this playlist yet</p>
-          <p className="mt-1 text-sm text-[#2B241C]/60 dark:text-[#F2EDDD]/60">Add one of your recordings to get started.</p>
+        <div className="mt-10 rounded-2xl border border-dashed border-[#201D1A]/20 p-10 text-center dark:border-white/20">
+          <PlaylistIcon className="mx-auto h-8 w-8 text-[#201D1A]/40 dark:text-[#F3F4F6]/40" />
+          <p className="mt-3 font-medium text-[#201D1A] dark:text-[#F3F4F6]">No recordings in this playlist yet</p>
+          <p className="mt-1 text-sm text-[#201D1A]/60 dark:text-[#F3F4F6]/60">Add one of your recordings to get started.</p>
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="mt-4 inline-block rounded-md bg-[#0F6E56] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 dark:bg-[#3EC79A] dark:text-[#101B33]"
+            className="mt-4 inline-block rounded-md bg-[#0F6E56] px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-[#0c5945] dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b]"
           >
             Add recordings
           </button>

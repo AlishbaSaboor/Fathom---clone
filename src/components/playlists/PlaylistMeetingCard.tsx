@@ -40,7 +40,7 @@ export function PlaylistMeetingCard({ playlistId, meeting }: { playlistId: strin
     <div className="group relative flex w-full">
       <Link
         href={`/meetings/${meeting.id}`}
-        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#2B241C]/15 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-[#F2EDDD]/15 dark:bg-[#101B33]"
+        className="flex w-full flex-col overflow-hidden rounded-2xl border border-[#201D1A]/10 bg-white shadow-xs transition hover:border-[#201D1A]/20 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
       >
         <MeetingCardBody meeting={meeting} />
       </Link>

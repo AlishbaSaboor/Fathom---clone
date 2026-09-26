@@ -13,7 +13,7 @@ const getMeeting = cache(async (id: string) => getMeetingForOwner(id, (await req
 export async function generateMetadata({ params }: PageProps<"/meetings/[id]">): Promise<Metadata> {
   const { id } = await params;
   const meeting = await getMeeting(id);
-  return { title: meeting ? `${meeting.title} | Fathom Clone` : "Call not found" };
+  return { title: meeting ? `${meeting.title} | Fathom AI` : "Call not found" };
 }
 
 export default async function MeetingPage({ params }: PageProps<"/meetings/[id]">) {

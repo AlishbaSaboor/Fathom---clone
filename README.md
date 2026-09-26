@@ -1,4 +1,4 @@
-# Fathom Clone
+# Fathom AI
 
 A rebuild of [Fathom](https://fathom.video), an AI meeting notetaker that turns recordings into transcripts, summaries and action items. Built for the 8x Software Engineer assignment.
 

@@ -4,7 +4,7 @@ import { PlaylistsView } from "@/components/playlists/PlaylistsView";
 import { getPlaylistsForOwner } from "@/lib/playlists";
 import { requireUser } from "@/lib/server/auth";
 
-export const metadata: Metadata = { title: "Playlists | Fathom Clone" };
+export const metadata: Metadata = { title: "Playlists | Fathom AI" };
 
 /**
  * The visitor's own playlists. Its own shell (not a shared layout.tsx) because,

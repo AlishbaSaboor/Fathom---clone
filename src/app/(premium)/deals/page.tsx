@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FeatureStubPage } from "@/components/premium/FeatureStubPage";
 
-export const metadata: Metadata = { title: "Deals | Fathom Clone" };
+export const metadata: Metadata = { title: "Deals | Fathom AI" };
 
 export default function DealsPage() {
   return (

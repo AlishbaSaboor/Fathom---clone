@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps<"/share/[token]">):
   const { token } = await params;
   const meeting = await getShared(token);
   return {
-    title: meeting ? `${meeting.title} (shared) | Fathom Clone` : "Shared call not found",
+    title: meeting ? `${meeting.title} (shared) | Fathom AI` : "Shared call not found",
     // Shared links are unlisted, so keep them out of search results.
     robots: { index: false, follow: false },
   };

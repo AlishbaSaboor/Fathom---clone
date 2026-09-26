@@ -5,7 +5,7 @@ import { PricingCards } from "@/components/pricing/PricingCards";
 import { getUser } from "@/lib/server/auth";
 
 export const metadata: Metadata = {
-  title: "Pricing | Fathom Clone",
+  title: "Pricing | Fathom AI",
   description: "Free, Pro and Plus plans. Start free with real transcripts, summaries and shareable links.",
 };
 

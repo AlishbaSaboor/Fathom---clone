@@ -26,13 +26,13 @@ export function LogoMark({ className = "h-7 w-7", barClassName = "fill-white" }:
   );
 }
 
-/** Mark plus the "Fathom Clone" wordmark (Inter, the app's font). Used by both the app and share headers. */
+/** Mark plus the "Fathom AI" wordmark (Inter, the app's font). Used by both the app and share headers. */
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-[17px] leading-none tracking-tight ${className}`}>
-      <LogoMark className="h-7 w-7 text-blue-600 dark:text-blue-500" />
+      <LogoMark className="h-7 w-7 text-[#0F6E56] dark:text-[#3EC79A]" />
       <span>
-        <span className="font-bold">Fathom</span> <span className="font-medium text-blue-600 dark:text-blue-400">Clone</span>
+        <span className="font-bold">Fathom</span> <span className="font-medium text-[#0F6E56] dark:text-[#3EC79A]">AI</span>
       </span>
     </span>
   );
@@ -47,9 +47,9 @@ export function Logo({ className = "" }: { className?: string }) {
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-[17px] leading-none tracking-tight ${className}`}>
-      <LogoMark className="h-7 w-7 text-[#2B241C] dark:text-[#F2EDDD]" barClassName="fill-white dark:fill-[#101B33]" />
+      <LogoMark className="h-7 w-7 text-[#201D1A] dark:text-[#F3F4F6]" barClassName="fill-white dark:fill-[#0B0F19]" />
       <span>
-        <span className="font-bold">Fathom</span> <span className="font-medium">Clone</span>
+        <span className="font-bold">Fathom</span> <span className="font-medium">AI</span>
       </span>
     </span>
   );

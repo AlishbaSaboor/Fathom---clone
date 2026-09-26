@@ -58,7 +58,7 @@ export function CreatePlaylistModal({ open, onClose }: { open: boolean; onClose:
   return (
     <Modal open={open} onClose={reset} title="New playlist">
       {redirecting ? (
-        <div role="status" className="flex items-center gap-3 py-2 text-sm text-[#2B241C]/70 dark:text-[#F2EDDD]/70">
+        <div role="status" className="flex items-center gap-3 py-2 text-sm text-[#201D1A]/70 dark:text-[#F3F4F6]/70">
           <span
             className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#0F6E56]/25 border-t-[#0F6E56] dark:border-[#3EC79A]/25 dark:border-t-[#3EC79A]"
             aria-hidden
@@ -74,7 +74,7 @@ export function CreatePlaylistModal({ open, onClose }: { open: boolean; onClose:
           className="space-y-4"
         >
           <div>
-            <label htmlFor="playlist-name" className="mb-1.5 block text-sm font-medium">
+            <label htmlFor="playlist-name" className="mb-1.5 block text-sm font-medium text-[#201D1A] dark:text-[#F3F4F6]">
               Name
             </label>
             <input
@@ -84,13 +84,13 @@ export function CreatePlaylistModal({ open, onClose }: { open: boolean; onClose:
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
               placeholder="e.g. Onboarding calls"
-              className="w-full rounded-lg border border-[#2B241C]/20 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-[#2B241C]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/25 dark:border-[#F2EDDD]/20 dark:bg-[#101B33] dark:placeholder:text-[#F2EDDD]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/25"
+              className="w-full rounded-lg border border-[#201D1A]/20 bg-white px-3 py-2.5 text-sm text-[#201D1A] outline-none placeholder:text-[#201D1A]/40 focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/20 dark:border-white/15 dark:bg-white/[0.06] dark:text-[#F3F4F6] dark:placeholder:text-[#F3F4F6]/40 dark:focus:border-[#3EC79A] dark:focus:ring-[#3EC79A]/20"
             />
           </div>
           <button
             type="submit"
             disabled={!name.trim() || pending}
-            className="w-full rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#101B33]"
+            className="w-full rounded-lg bg-[#0F6E56] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0c5945] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3EC79A] dark:text-[#0B0F19] dark:hover:bg-[#35b58b]"
           >
             {pending ? "Creating…" : "Create playlist"}
           </button>

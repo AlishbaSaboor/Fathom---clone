@@ -2,6 +2,7 @@ import { AvatarStack } from "@/components/ui/Avatar";
 import { PlayIcon } from "@/components/ui/icons";
 import { formatDateTime, formatDuration } from "@/lib/format";
 import type { Attendee, MeetingListItem } from "@/types/meeting";
+import { VideoThumbnail } from "./VideoThumbnail";
 
 export function MeetingCardBody({
   meeting,
@@ -10,16 +11,19 @@ export function MeetingCardBody({
   meeting: MeetingListItem;
   matchedAttendees?: Attendee[];
 }) {
+  const isVideo = meeting.media?.mimeType?.startsWith("video/") && Boolean(meeting.media?.url);
+
   return (
     <>
-      <div
-        className="relative flex h-32 items-center justify-center"
-        style={{ backgroundImage: `linear-gradient(135deg, ${meeting.poster.from}, ${meeting.poster.to})` }}
-      >
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-[#201D1A] shadow-md transition group-hover:scale-105">
+      <div className="relative flex h-36 w-full items-center justify-center overflow-hidden bg-black/90">
+        <VideoThumbnail
+          url={isVideo ? meeting.media?.url : undefined}
+          poster={meeting.poster}
+        />
+        <span className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-[#201D1A] shadow-md transition group-hover:scale-110">
           <PlayIcon className="ml-0.5 h-5 w-5" />
         </span>
-        <span className="absolute bottom-2 right-2 rounded-md bg-black/65 px-1.5 py-0.5 font-mono text-[11px] font-medium text-white backdrop-blur-xs">
+        <span className="absolute bottom-2.5 right-2.5 z-10 rounded-md bg-black/75 px-1.5 py-0.5 font-mono text-[11px] font-medium text-white backdrop-blur-xs">
           {formatDuration(meeting.durationSec)}
         </span>
       </div>

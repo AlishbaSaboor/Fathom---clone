@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fathom Clone",
-  description: "AI meeting notetaker: a one-day clone of fathom.video",
+  title: "Fathom AI",
+  description: "AI meeting notetaker: summarize, transcribe, and ask anything across your calls",
 };
 
 // Root layout carries no chrome. The app shell lives in the (app) route group

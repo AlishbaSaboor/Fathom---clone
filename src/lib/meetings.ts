@@ -253,7 +253,7 @@ async function load(doc: MeetingDoc | null): Promise<Meeting | null> {
 }
 
 /** The list-page projection of a meeting document. Shared with lib/playlists.ts, which resolves its membership against the same fields. */
-export function toMeetingListItem(d: Pick<MeetingDoc, "_id" | "title" | "date" | "durationSec" | "poster" | "attendees" | "shareToken" | "actionItemCount">): MeetingListItem {
+export function toMeetingListItem(d: Pick<MeetingDoc, "_id" | "title" | "date" | "durationSec" | "poster" | "attendees" | "shareToken" | "actionItemCount" | "media">): MeetingListItem {
   return {
     id: d._id,
     title: d.title,
@@ -263,10 +263,18 @@ export function toMeetingListItem(d: Pick<MeetingDoc, "_id" | "title" | "date" |
     attendees: d.attendees ?? [],
     shareToken: d.shareToken,
     actionItemCount: d.actionItemCount ?? 0,
+    media: d.media
+      ? {
+          url: d.media.url ?? "",
+          fileName: d.media.fileName,
+          mimeType: d.media.mimeType,
+          sizeBytes: d.media.sizeBytes,
+        }
+      : undefined,
   };
 }
 
-const LIST_PROJECTION = { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1, actionItemCount: 1 } as const;
+const LIST_PROJECTION = { title: 1, date: 1, durationSec: 1, poster: 1, attendees: 1, shareToken: 1, actionItemCount: 1, media: 1 } as const;
 
 /** The owner's finished meetings, newest first. Transcripts are left out. */
 export async function getMeetingList(ownerId: string | null): Promise<MeetingListItem[]> {
