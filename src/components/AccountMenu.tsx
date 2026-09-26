@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
 import {
   BookIcon,
@@ -11,14 +13,11 @@ import {
 } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 
-// Auth and accounts are out of scope for this build, so this is a static
-// stand-in for the real account menu, laid out like Fathom's: help links, legal
-// links, then app actions. Every entry is a stub that answers "Not part of this
-// build". There is deliberately no "Logged in as" line: with no account system,
-// showing an email would be misleading.
+// Everything below Logout is still out of scope for this build: honest stubs,
+// laid out like Fathom's own menu (help links, legal links, then app actions).
 const icon = "h-4 w-4 text-zinc-500 dark:text-zinc-400";
 
-const ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBefore?: boolean }[] = [
+const STUB_ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBefore?: boolean }[] = [
   { id: "start-test-call", label: "Start Test Call", icon: <VideoIcon className={icon} /> },
   { id: "tutorial", label: "Tutorial", icon: <BookIcon className={icon} /> },
   { id: "faqs", label: "FAQs", icon: <HelpCircleIcon className={icon} /> },
@@ -28,19 +27,51 @@ const ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBef
   { id: "security", label: "Security & Compliance" },
   { id: "status", label: "System Status" },
   { id: "download-app", label: "Download App", icon: <DownloadIcon className={icon} />, separatorBefore: true },
-  { id: "logout", label: "Logout", icon: <LogOutIcon className={icon} /> },
 ];
 
 const DEFAULT_TRIGGER_CLASS =
   "flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
 
-export function AccountMenu({ triggerClassName = DEFAULT_TRIGGER_CLASS }: { triggerClassName?: string }) {
-  const { show, toast } = useToast();
+/** The first letters of up to two words, for the avatar; "?" if there's nothing to work with. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
+}
 
-  const items: MenuItem[] = ENTRIES.map((e) => ({
-    ...e,
-    onSelect: () => show("Not part of this build", "info"),
-  }));
+export function AccountMenu({
+  user,
+  triggerClassName = DEFAULT_TRIGGER_CLASS,
+}: {
+  user: { email: string; name: string } | null;
+  triggerClassName?: string;
+}) {
+  const router = useRouter();
+  const { show, toast } = useToast();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      router.push("/");
+      router.refresh();
+    }
+  }
+
+  const items: MenuItem[] = [
+    ...(user
+      ? [{ id: "identity", label: user.name, hint: user.email, disabled: true, onSelect: () => {} } satisfies MenuItem]
+      : []),
+    { id: "pricing", label: "Pricing", separatorBefore: true, onSelect: () => router.push("/pricing") },
+    ...STUB_ENTRIES.map((e) => ({ ...e, onSelect: () => show("Not part of this build", "info") })),
+    { id: "logout", label: loggingOut ? "Logging out…" : "Logout", icon: <LogOutIcon className={icon} />, separatorBefore: true, onSelect: logout },
+  ];
 
   return (
     <>
@@ -50,7 +81,7 @@ export function AccountMenu({ triggerClassName = DEFAULT_TRIGGER_CLASS }: { trig
         align="right"
         menuClassName="w-60"
         triggerClassName={triggerClassName}
-        triggerChildren="DU"
+        triggerChildren={user ? initials(user.name) : "?"}
       />
       {toast}
     </>

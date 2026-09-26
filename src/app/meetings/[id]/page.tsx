@@ -4,15 +4,16 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { OwnerMeetingView } from "@/components/detail/OwnerMeetingView";
 import { getMeetingForOwner } from "@/lib/meetings";
-import { getOwnerId } from "@/lib/server/owner";
+import { requireUser } from "@/lib/server/auth";
 
 // The owner's view of one of their recordings. Rendered on demand: which
 // meetings exist, and whose they are, is only known from the database and the
-// visitor's owner cookie. Someone else's id, or an unknown one, is a 404.
+// visitor's session. Someone else's id, or an unknown one, is a 404.
 export const dynamic = "force-dynamic";
 
-// One database read per request, shared by generateMetadata and the page.
-const getMeeting = cache(async (id: string) => getMeetingForOwner(id, await getOwnerId()));
+// One database read per request, shared by generateMetadata and the page. requireUser()
+// redirects to /login on its own if the session isn't valid (see lib/server/auth.ts).
+const getMeeting = cache(async (id: string) => getMeetingForOwner(id, (await requireUser()).id));
 
 export async function generateMetadata({ params }: PageProps<"/meetings/[id]">): Promise<Metadata> {
   const { id } = await params;

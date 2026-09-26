@@ -18,7 +18,10 @@ export type GeminiErrorKind =
   | "not_found"
   | "invalid_input" // our own validation (size, type, question length)
   | "rate_limited" // our own per-IP limit
-  | "unauthorized" // no anonymous owner cookie on the request
+  | "unauthorized" // no signed-in session on the request
+  | "invalid_credentials" // login: unknown email or wrong password
+  | "email_taken" // signup: an account with that email already exists
+  | "oauth_failed" // Google sign-in didn't complete
   | "storage_full" // our own recording storage cap
   | "storage_unavailable" // database or file storage unreachable
   | "unknown";
@@ -43,7 +46,10 @@ const MESSAGES: Record<GeminiErrorKind, string> = {
   not_found: "That upload wasn't found. It may have expired, so please upload the file again.",
   invalid_input: "That request wasn't valid.",
   rate_limited: "You're going a bit fast. Please wait a moment and try again.",
-  unauthorized: "Your browser session couldn't be identified. Reload the page and try again.",
+  unauthorized: "Please log in to continue.",
+  invalid_credentials: "That email or password is incorrect.",
+  email_taken: "An account with that email already exists.",
+  oauth_failed: "Google sign-in didn't complete. Please try again.",
   storage_full: "Recording storage is full right now, so this can't be saved. Delete an older recording and try again.",
   storage_unavailable: "Couldn't reach storage. Please try again in a moment.",
   unknown: "Something went wrong talking to Gemini. Please try again.",
@@ -68,6 +74,9 @@ const STATUS: Record<GeminiErrorKind, number> = {
   invalid_input: 400,
   rate_limited: 429,
   unauthorized: 401,
+  invalid_credentials: 401,
+  email_taken: 409,
+  oauth_failed: 400,
   storage_full: 507,
   storage_unavailable: 503,
   unknown: 500,

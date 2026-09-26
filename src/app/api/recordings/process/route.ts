@@ -3,7 +3,7 @@ import { GeminiError } from "@/lib/gemini/errors";
 import { completeMeeting, getPending } from "@/lib/meetings";
 import type { ProcessResponse } from "@/lib/recordings/types";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Step 3: one Gemini call that returns the transcript, title, summary and
 // action items, which are then saved to the database. Gemini can take 30-40s

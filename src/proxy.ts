@@ -1,27 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { OWNER_COOKIE, OWNER_COOKIE_MAX_AGE_SEC, isOwnerId } from "@/lib/ownerCookie";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/server/session";
 
-// Gives each new browser its anonymous owner id (see lib/ownerCookie.ts). Runs
-// only on the app pages, never on the marketing page at "/" or the public
-// share pages: a visitor who hasn't opened the app yet is not given an identity.
-export function proxy(request: NextRequest) {
-  if (isOwnerId(request.cookies.get(OWNER_COOKIE)?.value)) return NextResponse.next();
+// Gates the app's signed-in pages. This is the "optimistic" check from Next's own
+// auth guide: signature + expiry only, no database call, so it stays cheap on
+// every prefetched navigation. It is not the real access check — every page and
+// API route re-verifies against the sessions collection via lib/server/auth.ts,
+// which is what actually decides whether data is returned.
+export async function proxy(request: NextRequest) {
+  const sessionId = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
+  if (sessionId) return NextResponse.next();
 
-  const id = crypto.randomUUID();
-  // Set on the request as well, so the page rendered for this very first visit already sees it.
-  request.cookies.set(OWNER_COOKIE, id);
-  const response = NextResponse.next({ request });
-  response.cookies.set({
-    name: OWNER_COOKIE,
-    value: id,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: OWNER_COOKIE_MAX_AGE_SEC,
-  });
-  return response;
+  const url = new URL("/login", request.url);
+  url.searchParams.set("from", request.nextUrl.pathname);
+  return NextResponse.redirect(url);
 }
 
 export const config = {

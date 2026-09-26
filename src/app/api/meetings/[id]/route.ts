@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { GeminiError } from "@/lib/gemini/errors";
 import { deleteMeeting } from "@/lib/meetings";
 import { enforceRateLimit, errorResponse, json } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Deletes one of the visitor's own recordings: its stored file, transcript,
 // action items and share link. Only the owner (by cookie) can do this.

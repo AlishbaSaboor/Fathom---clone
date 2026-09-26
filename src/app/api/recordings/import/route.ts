@@ -3,7 +3,7 @@ import { importToGemini } from "@/lib/gemini/files";
 import { attachUpload, setGeminiFile } from "@/lib/meetings";
 import type { ImportResponse } from "@/lib/recordings/types";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Step 2 of an upload: the recording is now in Blob. Confirm that, record its
 // URL, and copy it to Gemini (server to server, streamed) so it can be

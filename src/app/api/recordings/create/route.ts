@@ -2,7 +2,7 @@ import { GeminiError } from "@/lib/gemini/errors";
 import { registerUpload } from "@/lib/meetings";
 import type { CreateUploadResponse } from "@/lib/recordings/types";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Step 1 of an upload. Registers the recording (type, size, length and the
 // storage limits are checked here, on the server) and tells the browser the

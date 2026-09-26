@@ -2,7 +2,7 @@ import { askAcrossCalls, parseAskAllBody } from "@/lib/gemini/askAll";
 import { getMeetingsForAsk } from "@/lib/meetings";
 import type { AskAllResponse } from "@/lib/recordings/types";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 export const maxDuration = 120;
 

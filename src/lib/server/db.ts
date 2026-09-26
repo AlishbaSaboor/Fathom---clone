@@ -14,11 +14,16 @@ import type { Attendee, SummarySet, TranscriptSegment } from "@/types/meeting";
 //                the largest part (about 50 KB for 30 minutes) and the list page and
 //                account-level Ask Fathom never need it.
 //   actionItems  one per item, so the "done" checkbox can be saved on its own.
+//   users        one per account (see lib/server/users.ts). A user may sign in with a
+//                password, Google, or both once linked.
+//   sessions     one per signed-in session (see lib/server/auth.ts). The cookie holds
+//                only a signed reference to a row here, so logout (or a future "log out
+//                everywhere") can really revoke it, not just clear the browser's cookie.
 
 export interface MeetingDoc {
   /** The meeting id used in the app's own URLs. */
   _id: string;
-  /** Anonymous owner (see lib/ownerCookie.ts). Never sent to the browser. */
+  /** The signed-in user this recording belongs to (a user id; see lib/server/auth.ts). Never sent to the browser. */
   ownerId: string;
   /** Opaque token in the public share link. Possession of it is the access check. */
   shareToken: string;
@@ -69,10 +74,31 @@ export interface ActionItemDoc {
   done: boolean;
 }
 
+export interface UserDoc {
+  /** A user id (also stored as `ownerId` on their meetings and action items). */
+  _id: string;
+  email: string;
+  name: string;
+  /** `scrypt:saltHex:hashHex`, or null for a Google-only account. */
+  passwordHash: string | null;
+  /** Google's stable subject id, or null until linked. */
+  googleId: string | null;
+  createdAt: Date;
+}
+
+export interface SessionDoc {
+  _id: string;
+  userId: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
 export interface Collections {
   meetings: Collection<MeetingDoc>;
   transcripts: Collection<TranscriptDoc>;
   actionItems: Collection<ActionItemDoc>;
+  users: Collection<UserDoc>;
+  sessions: Collection<SessionDoc>;
 }
 
 // One client per server instance, reused across requests. attachDatabasePool
@@ -114,6 +140,8 @@ export async function collections(): Promise<Collections> {
       meetings: db.collection<MeetingDoc>("meetings"),
       transcripts: db.collection<TranscriptDoc>("transcripts"),
       actionItems: db.collection<ActionItemDoc>("actionItems"),
+      users: db.collection<UserDoc>("users"),
+      sessions: db.collection<SessionDoc>("sessions"),
     };
     g.__mongoIndexes ??= Promise.all([
       c.meetings.createIndex({ ownerId: 1, status: 1, date: -1 }),
@@ -121,6 +149,10 @@ export async function collections(): Promise<Collections> {
       c.meetings.createIndex({ status: 1, createdAt: 1 }),
       c.actionItems.createIndex({ meetingId: 1, id: 1 }, { unique: true }),
       c.actionItems.createIndex({ ownerId: 1, done: 1 }),
+      c.users.createIndex({ email: 1 }, { unique: true }),
+      c.users.createIndex({ googleId: 1 }, { unique: true, sparse: true }),
+      // TTL index: Mongo removes a session on its own once expired, so logged-out sessions don't pile up.
+      c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     ]).then(() => undefined);
     await g.__mongoIndexes.catch((e) => {
       g.__mongoIndexes = undefined;

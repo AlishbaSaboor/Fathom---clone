@@ -33,7 +33,7 @@ import type { Meeting, MeetingListItem, TranscriptSegment } from "@/types/meetin
 //                      not upload again.
 //   completeMeeting    the analysis is saved and the meeting becomes "ready".
 //
-// Access: the owner (an anonymous cookie, see lib/ownerCookie.ts) reaches a
+// Access: the owner (a signed-in user, see lib/server/auth.ts) reaches a
 // meeting by id; anyone with the share token reaches the public version.
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

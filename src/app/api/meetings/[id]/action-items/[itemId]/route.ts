@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { GeminiError } from "@/lib/gemini/errors";
 import { setActionItemDone } from "@/lib/meetings";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Saves an action item's checkbox. Only the owner can change it; people
 // viewing a share link see the state but have no way to alter it.

@@ -27,14 +27,15 @@ Upload flow (one browser upload, then everything else happens on the server):
 
 Retrying after a failure never repeats finished steps: a file already in Blob is not uploaded again, and one Gemini already has is not copied again.
 
-Data (MongoDB Atlas): `meetings` (attendees, summary, share token, and the Blob URL of the recording, never the file itself), `transcripts` (one per meeting, kept apart because it is the largest part) and `actionItems` (one per item, so a checkbox saves on its own). Recordings live only in Vercel Blob.
+Data (MongoDB Atlas): `meetings` (attendees, summary, share token, and the Blob URL of the recording, never the file itself), `transcripts` (one per meeting, kept apart because it is the largest part), `actionItems` (one per item, so a checkbox saves on its own), `users` (email + scrypt password hash and/or a linked Google account) and `sessions` (one per signed-in session, so logout revokes it server-side rather than just clearing a cookie). Recordings live only in Vercel Blob.
+
+Accounts: email/password (hashed with `node:crypto`'s scrypt, no external dependency) and Google sign-in (a hand-rolled OAuth 2.0 Authorization Code flow with PKCE, verifying the id_token against Google's published keys). My Calls, Upload and a meeting's own page all require a signed-in session — see `src/lib/server/auth.ts`. A recording uploaded before signing in (under the old anonymous-cookie model) is claimed by the account on its first login.
 
 Limits, chosen from measurements of Gemini's behavior: 200 MB and 30 minutes per recording (longer audio gets an incomplete transcript in one call, so it is refused up front). Blob's free tier holds 1 GB and locks the store for 30 days if exceeded, so the app stops accepting uploads at 800 MB in total and 400 MB per visitor, and removes uploads that never finished after 24 hours.
 
 ## Out of scope
 
 - **Live meeting capture** (a bot joining Zoom/Meet/Teams): explicitly allowed to be stubbed per the assignment brief.
-- **Accounts and login.** Each browser gets a random anonymous owner id in an httpOnly cookie, and My Calls shows only that browser's recordings. It isn't a login: clearing cookies means losing the way back to your list, but share links keep working. The data model carries an owner id, so real accounts would replace only where that value comes from.
 - **A browser extension**: the product being rebuilt is the web app.
 - **Team and paid features** (Team Calls, Playlists, Alerts, Deals).
 

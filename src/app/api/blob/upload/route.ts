@@ -2,7 +2,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { GeminiError } from "@/lib/gemini/errors";
 import { authorizeBlobUpload } from "@/lib/meetings";
 import { enforceRateLimit, errorResponse, json, readJson } from "@/lib/server/api";
-import { requireOwnerId } from "@/lib/server/owner";
+import { requireOwnerId } from "@/lib/server/auth";
 
 // Issues the short-lived token the browser uploads a recording to Blob with (a
 // recording is far over the 4.5 MB a function request may carry, so it goes
