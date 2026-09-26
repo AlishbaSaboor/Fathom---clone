@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FeatureCard } from "@/components/landing/FeatureCard";
+import { LandingFAQ } from "@/components/landing/LandingFAQ";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 
@@ -60,6 +61,8 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
+
+        <LandingFAQ />
       </main>
 
       <LandingFooter />

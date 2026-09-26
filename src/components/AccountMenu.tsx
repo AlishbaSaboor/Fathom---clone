@@ -12,22 +12,12 @@ import {
   VideoIcon,
 } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
+import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 
-// Everything below Logout is still out of scope for this build: honest stubs,
-// laid out like Fathom's own menu (help links, legal links, then app actions).
+// Everything below Logout except FAQs and Privacy Policy is still out of scope
+// for this build: honest stubs, laid out like Fathom's own menu (help links,
+// legal links, then app actions).
 const icon = "h-4 w-4 text-zinc-500 dark:text-zinc-400";
-
-const STUB_ENTRIES: { id: string; label: string; icon?: React.ReactNode; separatorBefore?: boolean }[] = [
-  { id: "start-test-call", label: "Start Test Call", icon: <VideoIcon className={icon} /> },
-  { id: "tutorial", label: "Tutorial", icon: <BookIcon className={icon} /> },
-  { id: "faqs", label: "FAQs", icon: <HelpCircleIcon className={icon} /> },
-  { id: "developers", label: "Developers", icon: <CodeIcon className={icon} /> },
-  { id: "privacy", label: "Privacy Policy", separatorBefore: true },
-  { id: "terms", label: "Terms of Service" },
-  { id: "security", label: "Security & Compliance" },
-  { id: "status", label: "System Status" },
-  { id: "download-app", label: "Download App", icon: <DownloadIcon className={icon} />, separatorBefore: true },
-];
 
 const DEFAULT_TRIGGER_CLASS =
   "flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600";
@@ -52,6 +42,7 @@ export function AccountMenu({
   const router = useRouter();
   const { show, toast } = useToast();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   async function logout() {
     if (loggingOut) return;
@@ -64,12 +55,22 @@ export function AccountMenu({
     }
   }
 
+  const stub = () => show("Not part of this build", "info");
+
   const items: MenuItem[] = [
     ...(user
       ? [{ id: "identity", label: user.name, hint: user.email, disabled: true, onSelect: () => {} } satisfies MenuItem]
       : []),
     { id: "pricing", label: "Pricing", separatorBefore: true, onSelect: () => router.push("/pricing") },
-    ...STUB_ENTRIES.map((e) => ({ ...e, onSelect: () => show("Not part of this build", "info") })),
+    { id: "start-test-call", label: "Start Test Call", icon: <VideoIcon className={icon} />, onSelect: stub },
+    { id: "tutorial", label: "Tutorial", icon: <BookIcon className={icon} />, onSelect: stub },
+    { id: "faqs", label: "FAQs", icon: <HelpCircleIcon className={icon} />, onSelect: () => router.push("/#faq") },
+    { id: "developers", label: "Developers", icon: <CodeIcon className={icon} />, onSelect: stub },
+    { id: "privacy", label: "Privacy Policy", separatorBefore: true, onSelect: () => setPrivacyOpen(true) },
+    { id: "terms", label: "Terms of Service", onSelect: stub },
+    { id: "security", label: "Security & Compliance", onSelect: stub },
+    { id: "status", label: "System Status", onSelect: stub },
+    { id: "download-app", label: "Download App", icon: <DownloadIcon className={icon} />, separatorBefore: true, onSelect: stub },
     { id: "logout", label: loggingOut ? "Logging out…" : "Logout", icon: <LogOutIcon className={icon} />, separatorBefore: true, onSelect: logout },
   ];
 
@@ -84,6 +85,7 @@ export function AccountMenu({
         triggerChildren={user ? initials(user.name) : "?"}
       />
       {toast}
+      <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </>
   );
 }
