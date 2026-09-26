@@ -107,6 +107,14 @@ export interface PlaylistDoc {
   createdAt: Date;
 }
 
+export interface ContactMessageDoc {
+  _id?: ObjectId;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: Date;
+}
+
 export interface Collections {
   meetings: Collection<MeetingDoc>;
   transcripts: Collection<TranscriptDoc>;
@@ -114,6 +122,7 @@ export interface Collections {
   users: Collection<UserDoc>;
   sessions: Collection<SessionDoc>;
   playlists: Collection<PlaylistDoc>;
+  contactMessages: Collection<ContactMessageDoc>;
 }
 
 // One client per server instance, reused across requests. attachDatabasePool
@@ -158,6 +167,7 @@ export async function collections(): Promise<Collections> {
       users: db.collection<UserDoc>("users"),
       sessions: db.collection<SessionDoc>("sessions"),
       playlists: db.collection<PlaylistDoc>("playlists"),
+      contactMessages: db.collection<ContactMessageDoc>("contactMessages"),
     };
     g.__mongoIndexes ??= Promise.all([
       c.meetings.createIndex({ ownerId: 1, status: 1, date: -1 }),
@@ -171,6 +181,7 @@ export async function collections(): Promise<Collections> {
       c.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
       c.playlists.createIndex({ ownerId: 1, createdAt: -1 }),
       c.playlists.createIndex({ shareToken: 1 }, { unique: true }),
+      c.contactMessages.createIndex({ createdAt: -1 }),
     ]).then(() => undefined);
     await g.__mongoIndexes.catch((e) => {
       g.__mongoIndexes = undefined;
