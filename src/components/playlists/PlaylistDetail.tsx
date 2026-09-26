@@ -8,6 +8,7 @@ import { copyRich } from "@/lib/clipboard";
 import type { ApiErrorBody } from "@/lib/recordings/types";
 import type { MeetingListItem } from "@/types/meeting";
 import { AddRecordingsModal } from "./AddRecordingsModal";
+import { DeletePlaylistModal } from "./DeletePlaylistModal";
 import { PlaylistMeetingCard } from "./PlaylistMeetingCard";
 
 export function PlaylistDetail({
@@ -29,6 +30,8 @@ export function PlaylistDetail({
   const router = useRouter();
   const { show, toast } = useToast();
   const [adding, setAdding] = useState(autoOpenAdd);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Strips ?add=1 right after using it, so reloading this page later doesn't reopen the dialog on its own.
   useEffect(() => {
@@ -42,7 +45,7 @@ export function PlaylistDetail({
   }
 
   async function removePlaylist() {
-    if (!window.confirm(`Delete "${name}"? The recordings in it aren't affected, but the share link stops working.`)) return;
+    setDeleting(true);
     try {
       const res = await fetch(`/api/playlists/${id}`, { method: "DELETE" });
       if (res.ok) {
@@ -54,6 +57,8 @@ export function PlaylistDetail({
       show(message ?? "Couldn't delete that playlist. Please try again.", "error");
     } catch {
       show("Couldn't reach the server. Check your connection and try again.", "error");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -85,7 +90,7 @@ export function PlaylistDetail({
           </button>
           <button
             type="button"
-            onClick={() => void removePlaylist()}
+            onClick={() => setConfirmOpen(true)}
             aria-label="Delete playlist"
             title="Delete playlist"
             className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-3 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
@@ -119,6 +124,13 @@ export function PlaylistDetail({
       )}
 
       <AddRecordingsModal open={adding} onClose={() => setAdding(false)} playlistId={id} available={availableMeetings} />
+      <DeletePlaylistModal
+        open={confirmOpen}
+        name={name}
+        pending={deleting}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => void removePlaylist()}
+      />
       {toast}
     </>
   );

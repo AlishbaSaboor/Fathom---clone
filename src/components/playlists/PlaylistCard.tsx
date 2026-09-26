@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { DropdownMenu, type MenuItem } from "@/components/ui/DropdownMenu";
 import { LinkIcon, MoreVerticalIcon, PlaylistIcon, TrashIcon } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
@@ -9,10 +10,13 @@ import { copyRich } from "@/lib/clipboard";
 import { formatDateTime } from "@/lib/format";
 import type { ApiErrorBody } from "@/lib/recordings/types";
 import type { PlaylistSummary } from "@/types/meeting";
+import { DeletePlaylistModal } from "./DeletePlaylistModal";
 
 export function PlaylistCard({ playlist }: { playlist: PlaylistSummary }) {
   const router = useRouter();
   const { show, toast } = useToast();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function copyShareLink() {
     const ok = await copyRich(`${window.location.origin}/share/playlists/${playlist.shareToken}`);
@@ -20,20 +24,26 @@ export function PlaylistCard({ playlist }: { playlist: PlaylistSummary }) {
   }
 
   async function remove() {
-    if (!window.confirm(`Delete "${playlist.name}"? The recordings in it aren't affected, but the share link stops working.`)) return;
+    setDeleting(true);
     try {
       const res = await fetch(`/api/playlists/${playlist.id}`, { method: "DELETE" });
-      if (res.ok) return router.refresh();
+      if (res.ok) {
+        setConfirmOpen(false);
+        router.refresh();
+        return;
+      }
       const message = ((await res.json().catch(() => null)) as ApiErrorBody | null)?.error.message;
       show(message ?? "Couldn't delete that playlist. Please try again.", "error");
     } catch {
       show("Couldn't reach the server. Check your connection and try again.", "error");
+    } finally {
+      setDeleting(false);
     }
   }
 
   const menu: MenuItem[] = [
     { id: "share", label: "Copy Share Link", icon: <LinkIcon className="h-4 w-4" />, onSelect: () => void copyShareLink() },
-    { id: "delete", label: "Delete", icon: <TrashIcon className="h-4 w-4" />, danger: true, separatorBefore: true, onSelect: () => void remove() },
+    { id: "delete", label: "Delete", icon: <TrashIcon className="h-4 w-4" />, danger: true, separatorBefore: true, onSelect: () => setConfirmOpen(true) },
   ];
 
   return (
@@ -62,6 +72,13 @@ export function PlaylistCard({ playlist }: { playlist: PlaylistSummary }) {
         />
       </div>
       {toast}
+      <DeletePlaylistModal
+        open={confirmOpen}
+        name={playlist.name}
+        pending={deleting}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => void remove()}
+      />
     </div>
   );
 }
